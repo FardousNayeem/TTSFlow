@@ -6,30 +6,30 @@
   "permissions": [
     "activeTab",
     "scripting",
-    "tabs",
     "storage"
   ],
   "host_permissions": [
     "<all_urls>"
   ],
-  "background": {
-    "scripts": ["background.js"],
-    "type": "module"
-  },
   "action": {
     "default_popup": "popup.html",
     "default_title": "Start TTSFlow"
   },
+  "icons": {
+    "48": "icon-48.png",
+    "128": "icon-128.png"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["icon-128.png", "icon-48.png"],
+      "matches": ["<all_urls>"]
+    }
+  ],
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "exclude_matches": ["*://piper.ttstool.com/*"],
       "js": ["content.js"],
       "css": ["styles.css"]
-    },
-    {
-      "matches": ["*://piper.ttstool.com/*"],
-      "js": ["piper_content.js"]
     }
   ]
 }

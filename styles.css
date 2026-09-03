@@ -146,6 +146,20 @@
   color: #eee;
 }
 
+/* Navbar Logo Styling */
+#ttsflow-navbar-logo {
+  width: 28px !important;
+  height: 28px !important;
+  min-width: 28px;
+  min-height: 28px;
+  border-radius: 6px;
+  position: absolute;
+  left: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  object-fit: contain;
+}
+
 /* =========================================
    5. SENTENCE HIGHLIGHTING & INTERACTION
    ========================================= */

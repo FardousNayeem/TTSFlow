@@ -72,9 +72,13 @@ function buildUI() {
   overlay = document.createElement('div');
   overlay.id = 'ttsflow-overlay';
   
+  // Get the proper internal URL for the icon asset
+  const iconURL = chrome.runtime.getURL('icon-128.png');
+
   const navbar = document.createElement('div');
   navbar.id = 'ttsflow-navbar';
   navbar.innerHTML = `
+    <img id="ttsflow-navbar-logo" src="${iconURL}" alt="Logo">
     <div id="ttsflow-controls">
       <button class="ttsflow-btn" id="ttsflow-prev">⏮</button>
       <button class="ttsflow-btn" id="ttsflow-playpause">⏸</button>

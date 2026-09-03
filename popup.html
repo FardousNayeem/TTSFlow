@@ -2,13 +2,53 @@
 <html>
 <head>
   <style>
-    body { width: 200px; padding: 15px; font-family: sans-serif; text-align: center; background: #222; color: #fff;}
-    button { padding: 10px 15px; background: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; width: 100%;}
-    button:hover { background: #45a049; }
+    body { 
+      width: 200px; 
+      padding: 15px; 
+      font-family: sans-serif; 
+      text-align: center; 
+      background: #222; 
+      color: #fff; 
+      margin: 0;
+    }
+    .header-container { 
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      gap: 8px; 
+      margin-bottom: 15px; 
+    }
+    .header-container img { 
+      width: 24px; 
+      height: 24px; 
+      border-radius: 4px;
+      display: block;
+    }
+    h3 { 
+      margin: 0; 
+      font-size: 18px; 
+      line-height: 24px; /* Matches icon height for perfect horizontal optical centering */
+    }
+    button { 
+      padding: 10px 15px; 
+      background: #4CAF50; 
+      color: white; 
+      border: none; 
+      border-radius: 4px; 
+      cursor: pointer; 
+      font-size: 14px; 
+      width: 100%;
+    }
+    button:hover { 
+      background: #45a049; 
+    }
   </style>
 </head>
 <body>
-  <h3>TTSFlow</h3>
+  <div class="header-container">
+    <img src="icon-128.png" alt="TTSFlow Logo">
+    <h3>TTSFlow</h3>
+  </div>
   <button id="startBtn">Start Reading</button>
   <script src="popup.js"></script>
 </body>
