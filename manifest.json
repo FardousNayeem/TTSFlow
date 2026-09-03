@@ -1,0 +1,35 @@
+{
+  "manifest_version": 3,
+  "name": "TTSFlow",
+  "version": "1.0",
+  "description": "Continuous TTS reader for web novels using Piper TTS with autoplay.",
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "tabs",
+    "storage"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "scripts": ["background.js"],
+    "type": "module"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Start TTSFlow"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "exclude_matches": ["*://piper.ttstool.com/*"],
+      "js": ["content.js"],
+      "css": ["styles.css"]
+    },
+    {
+      "matches": ["*://piper.ttstool.com/*"],
+      "js": ["piper_content.js"]
+    }
+  ]
+}
