@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "TTSFlow",
-  "version": "1.0",
-  "description": "Continuous TTS reader for web novels using Piper TTS with autoplay.",
+  "version": "1.0.0",
+  "description": "Continuous TTS reader for web novels using native browser TTS with autoplay.",
   "permissions": [
     "activeTab",
     "scripting",
@@ -18,6 +18,14 @@
   "icons": {
     "48": "icon-48.png",
     "128": "icon-128.png"
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "ttsflow@irrelevant.com",
+      "data_collection_permissions": {
+        "required": ["none"]
+      }
+    }
   },
   "web_accessible_resources": [
     {
