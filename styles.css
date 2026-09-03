@@ -1,190 +1,186 @@
-/* TTSFlow Overlay Styles */
+/* =========================================
+   1. MAIN OVERLAY & TYPOGRAPHY
+   ========================================= */
 #ttsflow-overlay {
   position: fixed;
   top: 0; left: 0; width: 100%; height: 100%;
-  background-color: rgba(30, 30, 30, 0.95);
+  background-color: rgba(18, 18, 18, 0.97);
   z-index: 999999;
   display: flex;
   flex-direction: column;
   align-items: center;
-  color: #ccc;
-  font-family: Georgia, serif;
+  color: #d1d1d1;
+  font-family: Georgia, serif; 
   overflow-y: auto;
-  padding: 40px 20px;
+  padding-bottom: 60px;
 }
-
-#ttsflow-controls {
-  position: sticky;
-  top: 10px;
-  background: #333;
-  padding: 10px 20px;
-  border-radius: 8px;
-  display: flex;
-  gap: 15px;
-  margin-bottom: 30px;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-}
-
-.ttsflow-btn {
-  background: none;
-  border: none;
-  color: #fff;
-  font-size: 20px;
-  cursor: pointer;
-  padding: 5px 10px;
-}
-
-.ttsflow-btn:hover { color: #4CAF50; }
 
 #ttsflow-text-container {
-  max-width: 800px;
-  font-size: 20px;
-  line-height: 1.6;
+  max-width: 750px;
+  font-size: 21px;
+  line-height: 1.7;
+  margin-top: 100px; 
 }
 
-/* The highlight class for the current sentence */
-.ttsflow-highlight {
-  background-color: #1e4620; /* Dark green highlight */
-  color: #fff;
-  border-radius: 3px;
-}
-
-/* Top Bar: Speed and Voice Controls */
-#ttsflow-top-bar {
-  position: absolute;
-  top: 20px;
-  left: 20px;
-  right: 20px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-family: sans-serif;
-  font-size: 14px;
-}
-
-#ttsflow-speed-control {
-  background: #333;
-  padding: 5px 15px;
-  border-radius: 6px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-#ttsflow-speed-slider {
-  cursor: pointer;
-}
-
-#ttsflow-voice-select {
-  background: #333;
-  color: #fff;
-  border: 1px solid #555;
-  padding: 8px;
-  border-radius: 6px;
-  max-width: 250px;
-  cursor: pointer;
-}
-
-/* Unified Sticky Navbar */
+/* =========================================
+   2. SLEEK UNIFIED NAVBAR
+   ========================================= */
 #ttsflow-navbar {
   position: fixed;
   top: 0; left: 0; width: 100%;
-  background: #2a2a2a;
-  padding: 10px 20px;
+  height: 65px;
+  background: rgba(25, 25, 25, 0.6); 
+  backdrop-filter: blur(12px); 
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05); 
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 25px;
+  gap: 40px; 
   z-index: 1000000;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.5);
   box-sizing: border-box;
-  color: white;
-  font-family: sans-serif;
+  color: #eee;
+  font-family: 'Segoe UI', system-ui, sans-serif; 
   font-size: 14px;
 }
 
+/* =========================================
+   3. MEDIA CONTROLS (Removed Box, Polished Icons)
+   ========================================= */
 #ttsflow-controls {
   display: flex;
-  gap: 10px;
+  align-items: center;
+  gap: 16px; /* Wider gap to let floating icons breathe */
 }
 
-#ttsflow-speed-control {
+.ttsflow-btn {
+  background: transparent;
+  border: none;
+  color: #ccc;
+  font-size: 22px; /* Prominent base size */
+  cursor: pointer;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  transition: all 0.2s cubic-bezier(0.2, 0, 0, 1.5); 
   display: flex;
   align-items: center;
-  gap: 10px;
-  background: #1a1a1a;
-  padding: 5px 10px;
-  border-radius: 4px;
+  justify-content: center;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.5); /* Depth without a box */
 }
 
-#ttsflow-voice-select {
-  background: #1a1a1a;
+.ttsflow-btn:hover {
   color: #fff;
-  border: 1px solid #444;
-  padding: 6px;
-  border-radius: 4px;
-  max-width: 250px;
-  cursor: pointer;
+  background: rgba(255, 255, 255, 0.08); /* Faint circle on hover */
+  transform: scale(1.15); 
 }
 
-#ttsflow-text-container {
-  max-width: 800px;
-  font-size: 20px;
-  line-height: 1.6;
-  margin-top: 70px; /* Push text down so it isn't hidden under the navbar */
+.ttsflow-btn:active {
+  transform: scale(0.95); 
 }
 
-/* Clickable Sentence Styling */
-.ttsflow-sentence {
-  cursor: pointer;
-  border-radius: 3px;
-  transition: background-color 0.2s;
-}
-
-.ttsflow-sentence:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-}
-
-.ttsflow-highlight {
-  background-color: #1e4620 !important;
-  color: #fff;
-}
-
-/* Unified Centered Navbar */
-#ttsflow-navbar {
-  position: fixed;
-  top: 0; left: 0; width: 100%;
-  background: #222;
-  padding: 10px 20px;
-  display: flex;
-  justify-content: center; /* Center everything */
-  align-items: center;
-  gap: 20px;
-  z-index: 1000000;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-  box-sizing: border-box;
-  color: white;
-  font-family: sans-serif;
-  font-size: 14px;
+#ttsflow-playpause {
+  color: #4CAF50;
+  font-size: 28px; /* Extra prominent */
+  text-shadow: 0 2px 8px rgba(76, 175, 80, 0.4); /* Faint green glow */
 }
 
 #ttsflow-close {
   position: absolute;
-  right: 20px; /* Lock close button to the right edge */
+  right: 20px;
   top: 50%;
   transform: translateY(-50%);
-  margin-left: 0 !important;
+  margin: 0 !important;
 }
 
-/* Loading Spinner for Seamless Transitions */
+/* =========================================
+   4. SETTINGS (SPEED & VOICE)
+   ========================================= */
+#ttsflow-speed-control {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+#ttsflow-speed-val {
+  font-variant-numeric: tabular-nums; 
+  width: 28px;
+  display: inline-block;
+  text-align: right;
+}
+
+#ttsflow-speed-slider {
+  cursor: pointer;
+  accent-color: #4CAF50; 
+  width: 100px;
+}
+
+#ttsflow-voice-select {
+  background-color: rgba(20, 20, 20, 0.7); 
+  color: #eee;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 6px 30px 6px 12px; 
+  border-radius: 6px;
+  max-width: 240px;
+  cursor: pointer;
+  outline: none;
+  font-family: inherit;
+  font-size: 13px;
+  transition: all 0.2s ease;
+  color-scheme: dark; 
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url('data:image/svg+xml;utf8,<svg fill="%23eeeeee" height="20" viewBox="0 0 24 24" width="20" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>');
+  background-repeat: no-repeat;
+  background-position: right 6px center;
+}
+
+#ttsflow-voice-select:hover, #ttsflow-voice-select:focus {
+  border-color: rgba(255, 255, 255, 0.4);
+  background-color: rgba(0, 0, 0, 0.8);
+}
+
+#ttsflow-voice-select option {
+  background-color: #1a1a1a;
+  color: #eee;
+}
+
+/* =========================================
+   5. SENTENCE HIGHLIGHTING & INTERACTION
+   ========================================= */
+.ttsflow-sentence {
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.2s ease, color 0.2s ease;
+  padding: 2px 4px; 
+}
+
+.ttsflow-sentence:hover {
+  background-color: rgba(255, 255, 255, 0.08); 
+}
+
+.ttsflow-highlight {
+  background-color: rgba(46, 125, 50, 0.5) !important; 
+  color: #fff !important;
+  box-shadow: none !important; 
+}
+
+.ttsflow-highlight:hover {
+  background-color: rgba(46, 125, 50, 0.7) !important; 
+}
+
+/* =========================================
+   6. LOADING SPINNER
+   ========================================= */
 .ttsflow-spinner {
-  border: 4px solid rgba(255,255,255,0.1);
-  border-top: 4px solid #4CAF50;
+  border: 3px solid rgba(255, 255, 255, 0.05);
+  border-top: 3px solid #4CAF50;
   border-radius: 50%;
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   animation: ttsflow-spin 1s linear infinite;
-  margin: 40px auto;
+  margin: 60px auto;
 }
 
 @keyframes ttsflow-spin {

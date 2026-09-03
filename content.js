@@ -7,7 +7,6 @@ let currentUtterance = null;
 let playbackRate = parseFloat(localStorage.getItem('ttsflow_speed')) || 1.0;
 let savedVoiceName = localStorage.getItem('ttsflow_voice') || 'Microsoft Mark';
 let selectedVoice = null;
-// Store the current document context for finding "Next" links seamlessly
 let currentNavContext = document; 
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
@@ -19,7 +18,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 function initTTSFlow() {
   if (document.getElementById('ttsflow-overlay')) return; 
   
-  currentNavContext = document; // Reset context to current window
+  currentNavContext = document; 
   extractAndSegmentText(document);
   
   if (sentences.length === 0) {
@@ -107,7 +106,7 @@ function buildUI() {
 }
 
 function renderSentences() {
-  textContainer.innerHTML = ''; // Clear previous text if any
+  textContainer.innerHTML = ''; 
   sentences.forEach((sentence, index) => {
     const span = document.createElement('span');
     span.id = `ttsflow-s-${index}`;
@@ -119,7 +118,6 @@ function renderSentences() {
       isPlaying = true;
       document.getElementById('ttsflow-playpause').innerText = "⏸";
       
-      // FIX: Detach the onend event before cancelling so it doesn't auto-advance
       if (currentUtterance) currentUtterance.onend = null; 
       window.speechSynthesis.cancel();
       
@@ -196,7 +194,7 @@ function attachEventListeners() {
   
   document.getElementById('ttsflow-stop').onclick = () => {
     isPlaying = false;
-    document.getElementById('ttsflow-playpause').innerText = "⏯";
+    document.getElementById('ttsflow-playpause').innerText = "▶"; // Fixed Icon
     if (currentUtterance) currentUtterance.onend = null;
     window.speechSynthesis.cancel(); 
   };
@@ -207,7 +205,7 @@ function attachEventListeners() {
       document.getElementById('ttsflow-playpause').innerText = "⏸"; 
       playCurrentSentence();
     } else {
-      document.getElementById('ttsflow-playpause').innerText = "⏯"; 
+      document.getElementById('ttsflow-playpause').innerText = "▶"; // Fixed Icon
       window.speechSynthesis.pause(); 
     }
   };
@@ -218,7 +216,7 @@ function playCurrentSentence() {
   const currentText = sentences[currentIndex];
   if (!currentText) return;
 
-  if (currentUtterance) currentUtterance.onend = null; // Clear previous listeners
+  if (currentUtterance) currentUtterance.onend = null; 
   window.speechSynthesis.cancel();
   
   currentUtterance = new SpeechSynthesisUtterance(currentText);
@@ -243,7 +241,6 @@ async function goToNextChapter() {
   console.log("TTSFlow: End of chapter. Searching for Next link...");
   let targetUrl = null;
 
-  // Search in the context of the currently loaded chapter (which might be a fetched page)
   const specificNextBtn = currentNavContext.querySelector('a[data-vt-direction="next"], a[rel="next"]');
   if (specificNextBtn && specificNextBtn.href) {
     targetUrl = specificNextBtn.href;
@@ -265,21 +262,17 @@ async function goToNextChapter() {
   if (targetUrl) {
     console.log("TTSFlow: Fetching next chapter from:", targetUrl);
     
-    // Show spinner
     textContainer.innerHTML = '<div class="ttsflow-spinner"></div>';
     
     try {
       const response = await fetch(targetUrl);
       const html = await response.text();
       
-      // Parse the new HTML in the background
       const parser = new DOMParser();
       currentNavContext = parser.parseFromString(html, 'text/html');
       
-      // Update browser URL silently (so refreshing keeps your place)
       window.history.pushState({path: targetUrl}, '', targetUrl);
       
-      // Extract text from the new document
       extractAndSegmentText(currentNavContext);
       
       if (sentences.length > 0) {
@@ -299,7 +292,7 @@ async function goToNextChapter() {
     alert("TTSFlow: Reached the latest chapter. No 'Next' button found.");
     isPlaying = false;
     const playBtn = document.getElementById('ttsflow-playpause');
-    if (playBtn) playBtn.innerText = "⏯";
+    if (playBtn) playBtn.innerText = "▶"; // Fixed Icon
   }
 }
 
