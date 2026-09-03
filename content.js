@@ -2,40 +2,32 @@ let sentences = [];
 let currentIndex = 0;
 let isPlaying = false;
 let overlay, textContainer;
+let currentUtterance = null;
 
+// Listen for the start message from the popup
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "START_TTSFLOW") {
     initTTSFlow();
   }
-  if (request.action === "NEXT_SENTENCE" && isPlaying) {
-    moveSentence(1);
-    playCurrentSentence();
-  }
 });
-
-function playCurrentSentence() {
-  if (!isPlaying) return;
-  const currentText = sentences[currentIndex];
-  if (currentText) {
-    // Send to background script which sends to Piper
-    chrome.runtime.sendMessage({ action: "PLAY_TEXT", text: currentText });
-  }
-}
 
 function initTTSFlow() {
   if (document.getElementById('ttsflow-overlay')) return; // Prevent duplicates
   
   extractAndSegmentText();
+  
+  if (sentences.length === 0) {
+    alert("TTSFlow: Could not find readable text on this page.");
+    return;
+  }
+  
   buildUI();
   highlightCurrentSentence();
 }
 
 function extractAndSegmentText() {
-  // 1. Target the main content area (covers Royal Road, Scribble Hub, Webnovel, etc.)
-  // If it can't find these specific classes, it falls back to the whole body.
+  // Target the main content area first
   const contentArea = document.querySelector('.chapter-content, .entry-content, #chapter-content, .reader-content, article') || document.body;
-
-  // 2. Grab standard text blocks
   const elements = contentArea.querySelectorAll('p, .paragraph');
   
   let validParagraphs = [];
@@ -44,7 +36,7 @@ function extractAndSegmentText() {
     const text = el.innerText.trim();
     if (text.length < 5) continue; // Skip empty or tiny fragments
     
-    // 3. The Cutoff Logic: Stop extracting if we hit known footer/UI text or elements
+    // The Cutoff Logic: Stop extracting if we hit known footer/UI text or elements
     const lowerText = text.toLowerCase();
     
     // Check if this element is inside a comments section or author note container
@@ -53,7 +45,7 @@ function extractAndSegmentText() {
       break;
     }
 
-    // Check for common closing phrases or UI text (like in your example)
+    // Check for common closing phrases or UI text
     if (
       lowerText.includes("if you're enjoying the story") || 
       lowerText.includes("thanks for reading") ||
@@ -61,7 +53,8 @@ function extractAndSegmentText() {
       lowerText.includes("royal road® is the home") ||
       lowerText.startsWith("showing 1 to") ||
       lowerText === "next" ||
-      lowerText === "next chapter"
+      lowerText === "next chapter" ||
+      lowerText === "next >"
     ) {
       console.log("TTSFlow: Reached cutoff text. Stopping extraction.");
       break; 
@@ -72,14 +65,12 @@ function extractAndSegmentText() {
   
   const fullText = validParagraphs.join(' ');
 
-  // 4. Segment into clean sentences
+  // Use Intl.Segmenter to reliably split the text into sentences
   const segmenter = new Intl.Segmenter('en', { granularity: 'sentence' });
   const segments = segmenter.segment(fullText);
   
   sentences = Array.from(segments).map(s => s.segment.trim()).filter(s => s.length > 0);
   currentIndex = 0;
-  
-  console.log(`TTSFlow: Extracted ${sentences.length} sentences successfully.`);
 }
 
 function buildUI() {
@@ -117,19 +108,69 @@ function buildUI() {
 }
 
 function attachEventListeners() {
-  document.getElementById('ttsflow-close').onclick = closeTTSFlow;
-  document.getElementById('ttsflow-next').onclick = () => moveSentence(1);
-  document.getElementById('ttsflow-prev').onclick = () => moveSentence(-1);
+  document.getElementById('ttsflow-close').onclick = () => {
+    window.speechSynthesis.cancel();
+    closeTTSFlow();
+  };
+  
+  document.getElementById('ttsflow-next').onclick = () => {
+    moveSentence(1);
+    if (isPlaying) playCurrentSentence();
+  };
+  
+  document.getElementById('ttsflow-prev').onclick = () => {
+    moveSentence(-1);
+    if (isPlaying) playCurrentSentence();
+  };
+  
+  document.getElementById('ttsflow-stop').onclick = () => {
+    isPlaying = false;
+    document.getElementById('ttsflow-playpause').innerText = "⏯";
+    window.speechSynthesis.cancel(); 
+  };
+
   document.getElementById('ttsflow-playpause').onclick = () => {
     isPlaying = !isPlaying;
     if (isPlaying) {
-      document.getElementById('ttsflow-playpause').innerText = "⏸"; // Change to pause icon
+      document.getElementById('ttsflow-playpause').innerText = "⏸"; 
       playCurrentSentence();
     } else {
-      document.getElementById('ttsflow-playpause').innerText = "⏯"; // Change to play icon
-      // Note: To instantly stop audio, you'd need a STOP_AUDIO message to piper_content.js
+      document.getElementById('ttsflow-playpause').innerText = "⏯"; 
+      window.speechSynthesis.pause(); 
     }
   };
+}
+
+function playCurrentSentence() {
+  if (!isPlaying) return;
+  
+  const currentText = sentences[currentIndex];
+  if (!currentText) return;
+
+  // Cancel any currently playing speech to prevent overlap
+  window.speechSynthesis.cancel();
+
+  // Create a new speech request
+  currentUtterance = new SpeechSynthesisUtterance(currentText);
+  
+  // When the sentence finishes, automatically move to the next one
+  currentUtterance.onend = () => {
+    if (isPlaying) {
+      if (currentIndex >= sentences.length - 1) {
+        // Phase 4 Hook: We are at the end of the chapter!
+        console.log("TTSFlow: Reached end of chapter.");
+        isPlaying = false;
+        document.getElementById('ttsflow-playpause').innerText = "⏯";
+        // TODO in Phase 4: Automatically find and click the "Next" button here
+      } else {
+        moveSentence(1);
+        playCurrentSentence();
+      }
+    }
+  };
+
+  // Start talking
+  window.speechSynthesis.speak(currentUtterance);
 }
 
 function moveSentence(step) {
@@ -137,7 +178,6 @@ function moveSentence(step) {
   if (currentIndex < 0) currentIndex = 0;
   if (currentIndex >= sentences.length) {
     currentIndex = sentences.length - 1;
-    // In Phase 4, we will trigger "Next Chapter" here
   }
   highlightCurrentSentence();
 }
@@ -159,5 +199,6 @@ function closeTTSFlow() {
   if (overlay) {
     overlay.remove();
     document.body.style.overflow = '';
+    isPlaying = false;
   }
 }
