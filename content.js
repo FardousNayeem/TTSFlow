@@ -6,7 +6,6 @@ let currentUtterance = null;
 
 let playbackRate = parseFloat(localStorage.getItem('ttsflow_speed')) || 1.0;
 let savedVoiceName = localStorage.getItem('ttsflow_voice') || 'Microsoft Mark';
-let selectedVoice = null;
 let currentNavContext = document; 
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
@@ -23,6 +22,7 @@ function initTTSFlow() {
   
   if (sentences.length === 0) {
     alert("TTSFlow: Could not find readable text on this page.");
+    localStorage.removeItem('ttsflow_autoplay'); // Prevent reload loops
     return;
   }
   
@@ -33,16 +33,20 @@ function initTTSFlow() {
 }
 
 function extractAndSegmentText(docContext) {
-  const contentArea = docContext.querySelector('.chapter-content, .entry-content, #chapter-content, .reader-content, article') || docContext.body;
-  const elements = contentArea.querySelectorAll('p, .paragraph');
+  const contentArea = docContext.querySelector('.reader-container, .chapter-body, .chapter-content, .entry-content, #chapter-content, .reader-content, article') || docContext.body;
+  const elements = contentArea.querySelectorAll('p, .paragraph, .wtr-line');
   let validParagraphs = [];
   
   for (let el of elements) {
     const text = el.innerText.trim();
     if (text.length < 5) continue; 
     
+    // Explicitly SKIP injected ads and blocker messages without breaking the loop
+    if (el.closest('.ad-blocker-message, .wtr-ads, .ads-report-warning, .bottom-reader-nav')) {
+      continue; 
+    }
+
     const lowerText = text.toLowerCase();
-    
     if (el.closest('.author-note-bottom, .comments-container, .chapter-nav, .portlet-body')) break;
 
     if (
@@ -72,7 +76,6 @@ function buildUI() {
   overlay = document.createElement('div');
   overlay.id = 'ttsflow-overlay';
   
-  // Get the proper internal URL for the icon asset
   const iconURL = chrome.runtime.getURL('icon-128.png');
 
   const navbar = document.createElement('div');
@@ -145,21 +148,24 @@ function populateVoices() {
   }
 
   voiceSelect.innerHTML = ''; 
-  selectedVoice = voices.find(v => v.name === savedVoiceName) || 
-                  voices.find(v => v.name.includes('Mark')) || 
-                  voices[0];
+  
+  let matchedVoice = voices.find(v => v.name === savedVoiceName) || 
+                     voices.find(v => v.name.includes('Mark')) || 
+                     voices[0];
 
-  voices.forEach((voice, i) => {
+  if (matchedVoice) savedVoiceName = matchedVoice.name;
+
+  voices.forEach((voice) => {
     const option = document.createElement('option');
-    option.value = i;
+    option.value = voice.name; // Bind to absolute name to fix caching bugs
     option.textContent = `${voice.name} (${voice.lang})`;
-    if (voice === selectedVoice) option.selected = true;
+    if (voice.name === savedVoiceName) option.selected = true;
     voiceSelect.appendChild(option);
   });
 
   voiceSelect.onchange = (e) => {
-    selectedVoice = voices[e.target.value];
-    localStorage.setItem('ttsflow_voice', selectedVoice.name); 
+    savedVoiceName = e.target.value;
+    localStorage.setItem('ttsflow_voice', savedVoiceName); 
     if (isPlaying) {
        if (currentUtterance) currentUtterance.onend = null;
        window.speechSynthesis.cancel();
@@ -198,7 +204,8 @@ function attachEventListeners() {
   
   document.getElementById('ttsflow-stop').onclick = () => {
     isPlaying = false;
-    document.getElementById('ttsflow-playpause').innerText = "▶"; // Fixed Icon
+    localStorage.removeItem('ttsflow_autoplay'); // Clear flag
+    document.getElementById('ttsflow-playpause').innerText = "▶"; 
     if (currentUtterance) currentUtterance.onend = null;
     window.speechSynthesis.cancel(); 
   };
@@ -209,7 +216,7 @@ function attachEventListeners() {
       document.getElementById('ttsflow-playpause').innerText = "⏸"; 
       playCurrentSentence();
     } else {
-      document.getElementById('ttsflow-playpause').innerText = "▶"; // Fixed Icon
+      document.getElementById('ttsflow-playpause').innerText = "▶"; 
       window.speechSynthesis.pause(); 
     }
   };
@@ -224,7 +231,12 @@ function playCurrentSentence() {
   window.speechSynthesis.cancel();
   
   currentUtterance = new SpeechSynthesisUtterance(currentText);
-  if (selectedVoice) currentUtterance.voice = selectedVoice;
+  
+  // Fetch fresh voice object by name to avoid stale memory drops
+  const voices = window.speechSynthesis.getVoices();
+  const activeVoice = voices.find(v => v.name === savedVoiceName);
+  if (activeVoice) currentUtterance.voice = activeVoice;
+  
   currentUtterance.rate = playbackRate;
   
   currentUtterance.onend = () => {
@@ -241,62 +253,54 @@ function playCurrentSentence() {
   window.speechSynthesis.speak(currentUtterance);
 }
 
-async function goToNextChapter() {
+function goToNextChapter() {
   console.log("TTSFlow: End of chapter. Searching for Next link...");
+  
+  const nextElements = Array.from(document.querySelectorAll('a, button'));
+  let nextBtn = nextElements.find(el => {
+    const text = (el.innerText || el.textContent || '').replace(/\s+/g, ' ').trim().toLowerCase();
+    if (text.length > 20) return false;
+    return (
+      text === 'next' || text === 'next chapter' || text === 'next >' ||
+      text.startsWith('next chapter') || text.endsWith('next chapter')
+    );
+  }) || document.querySelector('a[data-vt-direction="next"], a[rel="next"]');
+
   let targetUrl = null;
-
-  const specificNextBtn = currentNavContext.querySelector('a[data-vt-direction="next"], a[rel="next"]');
-  if (specificNextBtn && specificNextBtn.href) {
-    targetUrl = specificNextBtn.href;
+  if (nextBtn && nextBtn.href) {
+    targetUrl = nextBtn.href;
   }
 
+  // Predictive URL Fallback (Bypasses Javascript buttons)
   if (!targetUrl) {
-    const links = Array.from(currentNavContext.querySelectorAll('a'));
-    const matchedLink = links.find(a => {
-      const cleanText = (a.innerText || a.textContent || '').replace(/\s+/g, ' ').trim().toLowerCase();
-      return (
-        cleanText === 'next' || cleanText === 'next chapter' || cleanText === 'next >' ||
-        cleanText.startsWith('next chapter') || cleanText.endsWith('next chapter') ||
-        (cleanText.includes('next') && cleanText.includes('chapter'))
-      );
-    });
-    if (matchedLink && matchedLink.href) targetUrl = matchedLink.href;
+    const currentUrl = window.location.href;
+    const urlMatch = currentUrl.match(/(.*(?:chapter|ch|c|part|page|vol|volume)[-_\/ ]?)(\d+)(.*)/i);
+    if (urlMatch) {
+        const nextChNum = parseInt(urlMatch[2]) + 1;
+        targetUrl = urlMatch[1] + nextChNum + urlMatch[3];
+    }
   }
 
-  if (targetUrl) {
-    console.log("TTSFlow: Fetching next chapter from:", targetUrl);
-    
+  if (targetUrl || nextBtn) {
+    console.log("TTSFlow: Navigating to next chapter...");
     textContainer.innerHTML = '<div class="ttsflow-spinner"></div>';
     
-    try {
-      const response = await fetch(targetUrl);
-      const html = await response.text();
-      
-      const parser = new DOMParser();
-      currentNavContext = parser.parseFromString(html, 'text/html');
-      
-      window.history.pushState({path: targetUrl}, '', targetUrl);
-      
-      extractAndSegmentText(currentNavContext);
-      
-      if (sentences.length > 0) {
-        renderSentences();
-        highlightCurrentSentence();
-        playCurrentSentence();
-      } else {
-        alert("TTSFlow: Loaded next page but couldn't find readable text.");
-        closeTTSFlow();
-      }
-    } catch (e) {
-      console.error(e);
-      alert("TTSFlow: Failed to load next chapter automatically.");
-      closeTTSFlow();
+    // Plant flag to remember to keep reading
+    localStorage.setItem('ttsflow_autoplay', 'true');
+    
+    if (targetUrl) {
+      // Natural navigation bypasses Cloudflare perfectly
+      window.location.href = targetUrl;
+    } else {
+      nextBtn.click();
+      setTimeout(() => window.location.reload(), 1500);
     }
   } else {
     alert("TTSFlow: Reached the latest chapter. No 'Next' button found.");
     isPlaying = false;
+    localStorage.removeItem('ttsflow_autoplay');
     const playBtn = document.getElementById('ttsflow-playpause');
-    if (playBtn) playBtn.innerText = "▶"; // Fixed Icon
+    if (playBtn) playBtn.innerText = "▶";
   }
 }
 
@@ -314,8 +318,6 @@ function highlightCurrentSentence() {
   const activeSpan = document.getElementById(`ttsflow-s-${currentIndex}`);
   if (activeSpan) {
     activeSpan.classList.add('ttsflow-highlight');
-    
-    // Smoothly scroll the active sentence to the middle of the screen
     activeSpan.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 }
@@ -325,5 +327,22 @@ function closeTTSFlow() {
     overlay.remove();
     document.body.style.overflow = '';
     isPlaying = false;
+    localStorage.removeItem('ttsflow_autoplay'); // Clear flag
+  }
+}
+
+/* =========================================
+   AUTO-PLAY BOOTSTRAPPER
+   ========================================= */
+if (localStorage.getItem('ttsflow_autoplay') === 'true') {
+  const startAutoplay = () => {
+    // Wait briefly for SPA frameworks to inject chapter text
+    setTimeout(() => initTTSFlow(), 1000); 
+  };
+  
+  if (document.readyState === 'complete') {
+    startAutoplay();
+  } else {
+    window.addEventListener('load', startAutoplay);
   }
 }
