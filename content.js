@@ -314,8 +314,9 @@ function highlightCurrentSentence() {
   const activeSpan = document.getElementById(`ttsflow-s-${currentIndex}`);
   if (activeSpan) {
     activeSpan.classList.add('ttsflow-highlight');
-    const y = activeSpan.getBoundingClientRect().top + window.scrollY - 100;
-    window.scrollTo({top: y, behavior: 'smooth'});
+    
+    // Smoothly scroll the active sentence to the middle of the screen
+    activeSpan.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 }
 

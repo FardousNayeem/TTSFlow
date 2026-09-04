@@ -61,7 +61,6 @@
   cursor: pointer;
   width: 44px;
   height: 44px;
-  border-radius: 50%;
   transition: all 0.2s cubic-bezier(0.2, 0, 0, 1.5); 
   display: flex;
   align-items: center;
@@ -71,7 +70,7 @@
 
 .ttsflow-btn:hover {
   color: #fff;
-  background: rgba(255, 255, 255, 0.08); /* Faint circle on hover */
+  /* Background property removed so no circular shape appears */
   transform: scale(1.15); 
 }
 
