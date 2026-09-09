@@ -1,102 +1,325 @@
-# TTSFlow
+# TTSFlow 🎧
 
-A continuous text-to-speech reader for web novels, built for Firefox. It scrapes
-chapter text, highlights sentences as they are read, follows "next chapter"
-links on its own, and can read with either your system voices or offline neural
-voices that run entirely on your own machine.
+### Turn your web novels into your own private audiobook.
 
----
+**TTSFlow is a Firefox extension made for people who read web novels on sites like Royal Road, WebNovels, Scribble Hub, and similar platforms.**
 
-## Features
+Press **Start Reading**, put your headphones on, and let TTSFlow handle the rest.
 
-* **Continuous auto-play.** Detects the next-chapter link and keeps reading.
-* **Two voice engines.** Your operating system's voices work with no download.
-  Piper neural voices sound dramatically better and run locally and offline.
-* **Per-voice downloads.** Each neural voice is a self-contained model with its
-  own download and delete control, so you keep only the ones you want.
-* **One tab at a time.** Starting TTSFlow in a second tab stops the first, and
-  no page ever begins reading on its own.
-* **Click to jump.** Click any sentence to move playback there.
-* **Remembers your place.** Reopen a chapter where you left off.
-* **Settings page.** Speed, voices, chapter behaviour, and storage.
+**No copying chapters. No uploading text. No cloud required.**
+
+[🦊 Get TTSFlow for Firefox](https://addons.mozilla.org/en-US/firefox/addon/ttsflow/?utm_source=chatgpt.com)
 
 ---
 
-## Installation
+## 📖 Read. Listen. Keep going.
 
-1. Clone or download this folder.
-2. Open `about:debugging#/runtime/this-firefox`.
-3. Click **Load Temporary Add-on...** and select `manifest.json`.
+TTSFlow turns long web-novel sessions into a continuous listening experience.
 
-This works immediately with your system voices. Needs Firefox 140 or newer.
+It can:
 
-### Enabling neural voices
+* ▶️ **Start reading the current chapter**
+* ⏭️ **Automatically continue to the next chapter**
+* ✨ **Highlight the sentence currently being spoken**
+* 🖱️ **Click any sentence to jump there**
+* 🔖 **Remember where you stopped**
+* 🎚️ **Adjust reading speed from 0.5× to 2.5×**
+* 🎙️ **Use your system's voices**
+* 🧠 **Use offline neural Piper voices**
+* 🔒 **Keep neural speech processing on your own machine**
 
-The Piper runtime is not checked in, because it is roughly 28 MB of
-WebAssembly. Build it once:
+You don't have to babysit the page.
 
-```
+**Start a chapter → put the browser aside → keep listening.**
+
+---
+
+## 🚀 Install it in seconds
+
+TTSFlow is already available on the Firefox Add-ons store.
+
+[Install TTSFlow → Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/ttsflow/?utm_source=chatgpt.com)
+
+After installing:
+
+1. Open a chapter on your favourite web-novel site.
+2. Click the **TTSFlow** icon in Firefox.
+3. Click **Start Reading**.
+4. Listen.
+
+That's it.
+
+> **Nothing starts playing automatically just because you opened a page.**
+> You always choose when reading begins.
+
+---
+
+## 🎧 Two ways to listen
+
+### 🖥️ System voices
+
+Works immediately after installation.
+
+TTSFlow uses the voices exposed by your operating system and Firefox, so there is **nothing to download**.
+
+Perfect if you just want to install the extension and start listening.
+
+### 🧠 Offline neural voices
+
+Want something more natural?
+
+TTSFlow can use **Piper neural TTS voices** that run locally on your computer.
+
+Each voice is downloaded separately, so you decide which voices you keep.
+
+Once downloaded:
+
+**No cloud API.
+No account.
+No subscription.
+No internet connection required for synthesis.**
+
+The models run through WebAssembly on your CPU.
+
+---
+
+## 📚 Built for long-form web fiction
+
+Most browser TTS tools are designed around reading an article or a selected block of text.
+
+TTSFlow is designed around something different:
+
+**reading chapter after chapter.**
+
+When it reaches the end of a chapter, TTSFlow looks for the site's **Next Chapter** link and can continue reading without making you restart the reader.
+
+That means your workflow can become:
+
+> **Open novel → Start Reading → listen**
+
+instead of:
+
+> Open chapter → copy text → start TTS → finish → find next chapter → restart → repeat...
+
+---
+
+## ✨ Stay in the story
+
+While TTSFlow is reading:
+
+**The current sentence is highlighted.**
+
+The page follows along as the narration progresses, making it easy to keep your eyes on the story if you want to read along.
+
+And if you hear something you want to revisit:
+
+**Click the sentence.**
+
+Playback jumps there immediately.
+
+---
+
+## 🔖 Never lose your place
+
+TTSFlow remembers your reading position.
+
+Close the chapter.
+
+Come back later.
+
+**Pick up where you left off.**
+
+Your reading position is stored locally.
+
+---
+
+## 🔒 Local-first by design
+
+TTSFlow is designed to keep your reading experience on your machine.
+
+There is:
+
+* ❌ No account
+* ❌ No text-to-speech subscription
+* ❌ No cloud TTS requirement
+* ❌ No need to upload chapters to a server for neural voices
+
+System voices run through your browser/OS.
+
+Piper voices run locally through WebAssembly.
+
+Your web novel stays where it belongs:
+
+**in your browser.**
+
+---
+
+## 🎮 Simple controls
+
+The reader overlay gives you the controls you actually need:
+
+**Play / Pause**
+**Previous sentence**
+**Next sentence**
+**Speed**
+**Voice**
+**Close**
+
+Keyboard shortcuts:
+
+| Key     | Action            |
+| ------- | ----------------- |
+| `Space` | Play / Pause      |
+| `←`     | Previous sentence |
+| `→`     | Next sentence     |
+| `Esc`   | Close reader      |
+
+---
+
+## 🧠 One reader at a time
+
+TTSFlow deliberately allows only one active reader.
+
+Start TTSFlow in another tab and the previous reader stops.
+
+This prevents the classic:
+
+> "Why are two chapters talking at the same time?"
+
+problem.
+
+Chapter-to-chapter autoplay is also protected by a short-lived, tab-bound handoff token, so an old page cannot unexpectedly start speaking later.
+
+---
+
+# ⚡ Want better voices?
+
+Enable the optional **Piper neural voices**.
+
+The runtime is not included in the source tree because it is roughly 28 MB.
+
+For development/building:
+
+```bash
 npm install
 npm run vendor
 ```
 
-Then reload the add-on. The **Neural voices** section of the settings page will
-list the catalogue, and each voice downloads on demand.
+Then reload the extension.
 
-`npm run vendor` fetches the espeak-ng phonemizer, copies the ONNX Runtime
-binary, and bundles the worker. It refuses to finish if any remote-code
-reference survives into the bundle, so the packaged extension never loads code
-over the network.
+The Settings page will show the available neural voice catalogue.
 
----
+Each voice has its own:
 
-## Usage
+**Download → Use → Delete**
 
-1. Open a chapter, for example on Royal Road or wtr-lab.
-2. Click the **TTSFlow** icon, then **Start Reading**.
-3. Use the overlay controls to pause, change speed, switch voice, or skip.
+controls.
 
-Keyboard: `Space` play/pause, `Left`/`Right` skip a sentence, `Esc` close.
-
-The popup also has **Settings** and **Clear Cache**. Clearing the cache removes
-saved reading positions and recently synthesised audio; it never deletes
-downloaded voices, which have their own controls in Settings.
+Keep only the voices you actually want.
 
 ---
 
-## Voice quality on Linux
+## 🛠️ Installation for developers
 
-Firefox gets its system voices from speech-dispatcher, which usually means
-espeak-ng. It is intelligible but robotic. If TTSFlow reports no system voices
-at all, speech-dispatcher has none configured.
+Clone or download the repository.
 
-The Piper voices avoid this entirely. They are ordinary neural TTS models
-running through WebAssembly on your CPU, so they need no GPU and no network
-once downloaded. Medium-quality English voices are around 60 MB each.
+Open:
 
----
-
-## How it works
-
-* `background/arbiter.js` decides which tab owns the reader. Chapter-to-chapter
-  autoplay is carried by a single-use token bound to one tab and expiring in 90
-  seconds, so a stale flag can never make an unrelated tab start talking.
-* `background/piper.js` owns the inference worker and plays neural audio from
-  the background page, where no host page's CSP can interfere with it and the
-  speed control can change tempo without changing pitch.
-* `content/engines.js` puts the system and neural engines behind one interface,
-  so the reader never branches on which is in use.
-* `piper/worker.src.js` is bundled into `piper/worker.js` by `npm run vendor`.
-
----
-
-## Development
-
-```
-npm install          # build tooling only; the extension itself is plain files
-npm run vendor       # build the Piper runtime into piper/vendor/
-node build/icons.mjs # regenerate content/icons.js from @tabler/icons
-npx web-ext lint     # Mozilla's validator
+```text
+about:debugging#/runtime/this-firefox
 ```
 
-Icon path data comes from [Tabler Icons](https://tabler.io/icons) (MIT).
+Then:
+
+1. Click **Load Temporary Add-on...**
+2. Select `manifest.json`.
+3. Open a web-novel chapter.
+4. Click the TTSFlow toolbar icon.
+
+TTSFlow requires **Firefox 140 or newer**.
+
+---
+
+## 🔧 Development
+
+```bash
+npm install
+npm run vendor
+node build/icons.mjs
+npx web-ext lint
+```
+
+`npm install` is build tooling only. The extension itself is plain files.
+
+`npm run vendor`:
+
+* fetches the espeak-ng phonemizer
+* copies the ONNX Runtime binary
+* bundles the Piper worker
+* verifies that no remote-code reference remains in the generated bundle
+
+The packaged extension therefore does not load executable code from the network.
+
+---
+
+## 🏗️ How it works
+
+TTSFlow separates the reader from the speech engine.
+
+### `background/arbiter.js`
+
+Controls which browser tab owns the reader.
+
+Chapter-to-chapter autoplay uses a single-use token tied to the originating tab and expiring after 90 seconds.
+
+### `background/piper.js`
+
+Owns the neural inference worker and audio playback.
+
+Keeping inference in the background prevents a host page's CSP from interfering with the runtime.
+
+### `content/engines.js`
+
+Provides one interface for both system and neural voices, keeping the reader independent from the selected TTS engine.
+
+### `piper/worker.src.js`
+
+The Piper worker source is bundled into:
+
+```text
+piper/worker.js
+```
+
+by:
+
+```bash
+npm run vendor
+```
+
+---
+
+## 🐧 Linux note
+
+On Linux, Firefox system voices commonly come through speech-dispatcher, often using espeak-ng.
+
+They're useful and lightweight, but they can sound robotic.
+
+If Firefox exposes no system voices, make sure speech-dispatcher has a voice configured.
+
+For a more natural experience, use a Piper neural voice instead.
+
+---
+
+# 🎧 Give your eyes a break.
+
+If you're already spending hours reading web novels, let TTSFlow turn some of that reading time into listening time.
+
+**Install it. Open a chapter. Press Start Reading.**
+
+[🦊 Install TTSFlow on Firefox](https://addons.mozilla.org/en-US/firefox/addon/ttsflow/?utm_source=chatgpt.com)
+
+---
+
+## 📜 License
+
+Icon path data comes from [Tabler Icons](https://tabler.io/icons) and is licensed under MIT.

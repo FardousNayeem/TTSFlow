@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "TTSFlow",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "Continuous TTS reader for web novels, with optional offline neural voices.",
   "permissions": [
     "activeTab",
