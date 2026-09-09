@@ -1,4 +1,4 @@
-# TTSFlow 🎧
+# TTSFlow
 
 ### Turn your web novels into your own private audiobook.
 
@@ -18,15 +18,15 @@ TTSFlow turns long web-novel sessions into a continuous listening experience.
 
 It can:
 
-* ▶️ **Start reading the current chapter**
-* ⏭️ **Automatically continue to the next chapter**
-* ✨ **Highlight the sentence currently being spoken**
-* 🖱️ **Click any sentence to jump there**
-* 🔖 **Remember where you stopped**
-* 🎚️ **Adjust reading speed from 0.5× to 2.5×**
-* 🎙️ **Use your system's voices**
-* 🧠 **Use offline neural Piper voices**
-* 🔒 **Keep neural speech processing on your own machine**
+* **Start reading the current chapter**
+* **Automatically continue to the next chapter**
+* **Highlight the sentence currently being spoken**
+* **Click any sentence to jump there**
+* **Remember where you stopped**
+* **Adjust reading speed from 0.5× to 2.5×**
+* **Use your system's voices**
+* **Use offline neural Piper voices**
+* **Keep neural speech processing on your own machine**
 
 You don't have to babysit the page.
 
@@ -34,7 +34,7 @@ You don't have to babysit the page.
 
 ---
 
-## 🚀 Install it in seconds
+## Install it in seconds
 
 TTSFlow is already available on the Firefox Add-ons store.
 
@@ -56,7 +56,7 @@ That's it.
 
 ## 🎧 Two ways to listen
 
-### 🖥️ System voices
+### System voices
 
 Works immediately after installation.
 
@@ -64,7 +64,7 @@ TTSFlow uses the voices exposed by your operating system and Firefox, so there i
 
 Perfect if you just want to install the extension and start listening.
 
-### 🧠 Offline neural voices
+### Offline neural voices
 
 Want something more natural?
 
@@ -83,7 +83,7 @@ The models run through WebAssembly on your CPU.
 
 ---
 
-## 📚 Built for long-form web fiction
+## Built for long-form web fiction
 
 Most browser TTS tools are designed around reading an article or a selected block of text.
 
@@ -103,7 +103,7 @@ instead of:
 
 ---
 
-## ✨ Stay in the story
+## Stay in the story
 
 While TTSFlow is reading:
 
@@ -119,7 +119,7 @@ Playback jumps there immediately.
 
 ---
 
-## 🔖 Never lose your place
+## Never lose your place
 
 TTSFlow remembers your reading position.
 
@@ -133,7 +133,7 @@ Your reading position is stored locally.
 
 ---
 
-## 🔒 Local-first by design
+## Local-first by design
 
 TTSFlow is designed to keep your reading experience on your machine.
 
@@ -154,7 +154,7 @@ Your web novel stays where it belongs:
 
 ---
 
-## 🎮 Simple controls
+## Simple controls
 
 The reader overlay gives you the controls you actually need:
 
@@ -176,7 +176,7 @@ Keyboard shortcuts:
 
 ---
 
-## 🧠 One reader at a time
+## One reader at a time
 
 TTSFlow deliberately allows only one active reader.
 
@@ -192,7 +192,7 @@ Chapter-to-chapter autoplay is also protected by a short-lived, tab-bound handof
 
 ---
 
-# ⚡ Want better voices?
+# Want better voices?
 
 Enable the optional **Piper neural voices**.
 
@@ -219,7 +219,7 @@ Keep only the voices you actually want.
 
 ---
 
-## 🛠️ Installation for developers
+## Installation for developers
 
 Clone or download the repository.
 
@@ -240,7 +240,7 @@ TTSFlow requires **Firefox 140 or newer**.
 
 ---
 
-## 🔧 Development
+## Development
 
 ```bash
 npm install
@@ -262,7 +262,7 @@ The packaged extension therefore does not load executable code from the network.
 
 ---
 
-## 🏗️ How it works
+## How it works
 
 TTSFlow separates the reader from the speech engine.
 
@@ -298,7 +298,7 @@ npm run vendor
 
 ---
 
-## 🐧 Linux note
+## Linux note
 
 On Linux, Firefox system voices commonly come through speech-dispatcher, often using espeak-ng.
 
@@ -310,7 +310,7 @@ For a more natural experience, use a Piper neural voice instead.
 
 ---
 
-# 🎧 Give your eyes a break.
+# Give your eyes a break.
 
 If you're already spending hours reading web novels, let TTSFlow turn some of that reading time into listening time.
 
