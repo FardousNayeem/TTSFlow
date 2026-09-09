@@ -139,10 +139,10 @@ TTSFlow is designed to keep your reading experience on your machine.
 
 There is:
 
-* ❌ No account
-* ❌ No text-to-speech subscription
-* ❌ No cloud TTS requirement
-* ❌ No need to upload chapters to a server for neural voices
+* No account
+* No text-to-speech subscription
+* No cloud TTS requirement
+* No need to upload chapters to a server for neural voices
 
 System voices run through your browser/OS.
 
@@ -320,6 +320,6 @@ If you're already spending hours reading web novels, let TTSFlow turn some of th
 
 ---
 
-## 📜 License
+## License
 
 Icon path data comes from [Tabler Icons](https://tabler.io/icons) and is licensed under MIT.
