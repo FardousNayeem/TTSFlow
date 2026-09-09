@@ -1,55 +1,147 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta charset="utf-8">
   <style>
-    body { 
-      width: 200px; 
-      padding: 15px; 
-      font-family: sans-serif; 
-      text-align: center; 
-      background: #222; 
-      color: #fff; 
+    /* One accent (#4CAF50) and one radius scale (6px controls) throughout. */
+    :root {
+      color-scheme: dark;
+      --bg: #1c1c1c;
+      --surface: #262626;
+      --surface-hover: #303030;
+      --line: rgba(255, 255, 255, 0.09);
+      --text: #ececec;
+      --text-dim: #979797;
+      --accent: #4CAF50;
+      --accent-hover: #45a049;
+      --danger: #e58b83;
+      --radius: 6px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      width: 258px;
       margin: 0;
+      padding: 14px;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      font-size: 13px;
     }
-    .header-container { 
-      display: flex; 
-      align-items: center; 
-      justify-content: center; 
-      gap: 8px; 
-      margin-bottom: 15px; 
+
+    header {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      margin-bottom: 14px;
     }
-    .header-container img { 
-      width: 24px; 
-      height: 24px; 
-      border-radius: 4px;
-      display: block;
+    header img { width: 22px; height: 22px; border-radius: 5px; display: block; }
+    header h1 {
+      margin: 0;
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 0.2px;
     }
-    h3 { 
-      margin: 0; 
-      font-size: 18px; 
-      line-height: 24px; /* Matches icon height for perfect horizontal optical centering */
+
+    button {
+      font-family: inherit;
+      cursor: pointer;
+      border-radius: var(--radius);
+      transition: background 0.15s ease, border-color 0.15s ease;
     }
-    button { 
-      padding: 10px 15px; 
-      background: #4CAF50; 
-      color: white; 
-      border: none; 
-      border-radius: 4px; 
-      cursor: pointer; 
-      font-size: 14px; 
+    button:disabled { opacity: 0.55; cursor: default; }
+    button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+    /* Primary action */
+    #startBtn {
       width: 100%;
+      padding: 11px 14px;
+      background: var(--accent);
+      color: #0f2010;              /* dark-on-green keeps AA contrast */
+      border: none;
+      font-size: 13.5px;
+      font-weight: 600;
+      white-space: nowrap;         /* a wrapped CTA is a broken CTA */
     }
-    button:hover { 
-      background: #45a049; 
+    #startBtn:hover:not(:disabled) { background: var(--accent-hover); }
+    #startBtn:active:not(:disabled) { transform: scale(0.985); }
+    #startBtn.stop {
+      background: transparent;
+      border: 1px solid rgba(229, 139, 131, 0.45);
+      color: var(--danger);
+    }
+    #startBtn.stop:hover:not(:disabled) { background: rgba(229, 139, 131, 0.1); }
+
+    .divider { height: 1px; background: var(--line); margin: 12px 0 8px; }
+
+    /* Secondary actions read as a menu, not as competing buttons. */
+    .action {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      padding: 9px 10px;
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text);
+      font-size: 13px;
+      text-align: left;
+    }
+    .action:hover:not(:disabled) { background: var(--surface-hover); border-color: var(--line); }
+    .action svg { flex: none; color: var(--text-dim); }
+    .action:hover:not(:disabled) svg { color: var(--text); }
+    .action .sub {
+      display: block;
+      font-size: 11px;
+      color: var(--text-dim);
+      margin-top: 1px;
+    }
+    .action .labels { min-width: 0; }
+
+    #status {
+      margin: 10px 2px 0;
+      font-size: 11.5px;
+      line-height: 1.45;
+      color: var(--text-dim);
+      min-height: 15px;
+    }
+    #status.ok { color: #7cc47f; }
+    #status.error { color: var(--danger); }
+
+    @media (prefers-reduced-motion: reduce) {
+      button { transition: none; }
+      #startBtn:active:not(:disabled) { transform: none; }
     }
   </style>
 </head>
 <body>
-  <div class="header-container">
-    <img src="icon-128.png" alt="TTSFlow Logo">
-    <h3>TTSFlow</h3>
-  </div>
+  <header>
+    <img id="logo" alt="">
+    <h1>TTSFlow</h1>
+  </header>
+
   <button id="startBtn">Start Reading</button>
+
+  <div class="divider"></div>
+
+  <button class="action" id="settingsBtn">
+    <span class="labels">
+      Settings
+      <span class="sub">Voices, speed, chapter behaviour</span>
+    </span>
+  </button>
+
+  <button class="action" id="clearCacheBtn">
+    <span class="labels">
+      Clear Cache
+      <span class="sub">Saved positions and cached audio</span>
+    </span>
+  </button>
+
+  <p id="status"></p>
+
+  <script src="content/icons.js"></script>
   <script src="popup.js"></script>
 </body>
 </html>

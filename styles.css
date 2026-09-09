@@ -114,37 +114,6 @@
   width: 100px;
 }
 
-#ttsflow-voice-select {
-  background-color: rgba(20, 20, 20, 0.7); 
-  color: #eee;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  padding: 6px 30px 6px 12px; 
-  border-radius: 6px;
-  max-width: 240px;
-  cursor: pointer;
-  outline: none;
-  font-family: inherit;
-  font-size: 13px;
-  transition: all 0.2s ease;
-  color-scheme: dark; 
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  background-image: url('data:image/svg+xml;utf8,<svg fill="%23eeeeee" height="20" viewBox="0 0 24 24" width="20" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>');
-  background-repeat: no-repeat;
-  background-position: right 6px center;
-}
-
-#ttsflow-voice-select:hover, #ttsflow-voice-select:focus {
-  border-color: rgba(255, 255, 255, 0.4);
-  background-color: rgba(0, 0, 0, 0.8);
-}
-
-#ttsflow-voice-select option {
-  background-color: #1a1a1a;
-  color: #eee;
-}
-
 /* Navbar Logo Styling */
 #ttsflow-navbar-logo {
   width: 28px !important;
@@ -199,4 +168,362 @@
 @keyframes ttsflow-spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
+}
+
+/* =========================================
+   7. TOASTS (non-blocking replacement for alert)
+   ========================================= */
+.ttsflow-toast {
+  position: fixed;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000001;
+  max-width: 420px;
+  padding: 12px 18px;
+  background: rgba(25, 25, 25, 0.95);
+  color: #eee;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45);
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 1.4;
+  text-align: center;
+  animation: ttsflow-toast-in 0.2s ease-out;
+}
+
+@keyframes ttsflow-toast-in {
+  from { opacity: 0; transform: translate(-50%, 12px); }
+  to   { opacity: 1; transform: translate(-50%, 0); }
+}
+
+
+/* =========================================
+   8. USER-ACTIVATION PROMPT
+   Chrome refuses to synthesise speech on a page the user has not clicked,
+   which is the state an auto-loaded next chapter starts in.
+   ========================================= */
+#ttsflow-gesture {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1000002;
+  max-width: 420px;
+  padding: 26px 30px;
+  background: rgba(28, 28, 28, 0.98);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 10px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+  text-align: center;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+}
+
+#ttsflow-gesture p {
+  margin: 0 0 18px;
+  font-size: 15px;
+  line-height: 1.5;
+  color: #ddd;
+}
+
+#ttsflow-gesture-btn {
+  padding: 11px 22px;
+  background: #4CAF50;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+#ttsflow-gesture-btn:hover {
+  background: #45a049;
+}
+
+#ttsflow-gesture-btn:focus-visible {
+  outline: 2px solid #8bd98f;
+  outline-offset: 2px;
+}
+
+
+/* =========================================
+   9. VOICE PICKER
+   A panel rather than a <select>: <option> cannot hold the per-voice
+   download and delete controls.
+   ========================================= */
+#ttsflow-voice {
+  position: relative;
+}
+
+#ttsflow-voice-button {
+  background-color: rgba(20, 20, 20, 0.7);
+  color: #eee;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 7px 14px;
+  border-radius: 6px;
+  max-width: 230px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+#ttsflow-voice-button:hover {
+  border-color: rgba(255, 255, 255, 0.4);
+  background-color: rgba(0, 0, 0, 0.8);
+}
+
+#ttsflow-voice-panel {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 380px;
+  max-height: 60vh;
+  display: flex;
+  flex-direction: column;
+  background: rgba(24, 24, 24, 0.99);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 10px;
+  box-shadow: 0 14px 44px rgba(0, 0, 0, 0.6);
+  z-index: 1000003;
+  overflow: hidden;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  font-size: 13px;
+  color: #ddd;
+}
+
+#ttsflow-voice-search {
+  margin: 10px;
+  padding: 8px 10px;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 6px;
+  color: #eee;
+  font-family: inherit;
+  font-size: 13px;
+  outline: none;
+}
+
+#ttsflow-voice-search:focus {
+  border-color: #4CAF50;
+}
+
+#ttsflow-voice-list {
+  overflow-y: auto;
+  flex: 1;
+  padding: 0 6px 6px;
+}
+
+.ttsflow-voice-group {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 8px 5px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  color: #8f8f8f;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  margin-bottom: 4px;
+}
+
+.ttsflow-voice-group em {
+  font-style: normal;
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 11px;
+  color: #6f6f6f;
+}
+
+.ttsflow-voice-note {
+  padding: 12px 8px;
+  color: #9a9a9a;
+  line-height: 1.5;
+}
+
+.ttsflow-voice-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 6px;
+}
+
+.ttsflow-voice-row:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.ttsflow-voice-row.selected {
+  background: rgba(46, 125, 50, 0.28);
+}
+
+.ttsflow-voice-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 9px 8px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  color: inherit;
+}
+
+.ttsflow-voice-name {
+  font-size: 13px;
+  color: #eee;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ttsflow-voice-meta {
+  font-size: 11px;
+  color: #909090;
+}
+
+.ttsflow-voice-action {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding-right: 8px;
+  flex-shrink: 0;
+}
+
+.ttsflow-voice-icon {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  color: #bbb;
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.ttsflow-voice-icon:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+.ttsflow-voice-progress {
+  width: 64px;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.14);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.ttsflow-voice-progress div {
+  height: 100%;
+  background: #4CAF50;
+  transition: width 0.2s ease;
+}
+
+.ttsflow-voice-pct {
+  font-size: 11px;
+  color: #9a9a9a;
+  min-width: 30px;
+  font-variant-numeric: tabular-nums;
+}
+
+#ttsflow-voice-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 9px 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.09);
+  background: rgba(0, 0, 0, 0.3);
+  font-size: 12px;
+  color: #9a9a9a;
+}
+
+.ttsflow-link-btn {
+  background: none;
+  border: none;
+  color: #e07b72;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12px;
+  padding: 2px 4px;
+}
+
+.ttsflow-link-btn:hover {
+  color: #ff9c93;
+  text-decoration: underline;
+}
+
+
+/* =========================================
+   10. ICONS, SELECTED STATE, REDUCED MOTION
+   ========================================= */
+
+/* Vendored SVG icons inherit colour and sit on the text baseline. */
+.ttsflow-btn svg,
+.ttsflow-voice-icon svg {
+  display: block;
+  pointer-events: none;
+}
+
+.ttsflow-voice-icon.danger { color: #e58b83; }
+
+.ttsflow-voice-icon.danger:hover {
+  background: rgba(229, 139, 131, 0.14);
+  border-color: rgba(229, 139, 131, 0.4);
+  color: #ff9c93;
+}
+
+.ttsflow-voice-check {
+  vertical-align: -2px;
+  margin-right: 6px;
+  color: #6fbf73;
+}
+
+.ttsflow-btn:focus-visible,
+.ttsflow-voice-icon:focus-visible,
+#ttsflow-voice-button:focus-visible,
+.ttsflow-voice-body:focus-visible {
+  outline: 2px solid #4CAF50;
+  outline-offset: 2px;
+}
+
+/* Motion here is feedback only, so it all collapses cleanly. */
+@media (prefers-reduced-motion: reduce) {
+  .ttsflow-btn,
+  .ttsflow-sentence,
+  .ttsflow-voice-icon,
+  #ttsflow-voice-button,
+  #ttsflow-voice-select,
+  .ttsflow-voice-progress div {
+    transition: none !important;
+  }
+
+  .ttsflow-btn:hover,
+  .ttsflow-btn:active {
+    transform: none !important;
+  }
+
+  .ttsflow-toast {
+    animation: none !important;
+    transform: translateX(-50%) !important;
+  }
+
+  .ttsflow-spinner {
+    animation-duration: 2.4s;
+  }
 }

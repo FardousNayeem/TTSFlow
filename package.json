@@ -1,0 +1,16 @@
+{
+  "name": "ttsflow",
+  "version": "1.0.1",
+  "description": "Build tooling for the TTSFlow Firefox extension. The extension itself ships as plain files; this only vendors the Piper neural TTS runtime.",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "vendor": "node build/vendor.mjs",
+    "package": "node build/package.mjs"
+  },
+  "devDependencies": {
+    "@mintplex-labs/piper-tts-web": "^1.0.5",
+    "esbuild": "^0.25.0",
+    "onnxruntime-web": "1.18.0"
+  }
+}

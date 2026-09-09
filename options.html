@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>TTSFlow Settings</title>
+  <style>
+    :root { color-scheme: dark; }
+    body {
+      margin: 0;
+      padding: 32px 20px 60px;
+      background: #1a1a1a;
+      color: #ddd;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    .wrap { max-width: 680px; margin: 0 auto; }
+
+    header { display: flex; align-items: center; gap: 12px; margin-bottom: 28px; }
+    header img { width: 36px; height: 36px; border-radius: 8px; }
+    header h1 { margin: 0; font-size: 22px; font-weight: 600; }
+
+    section {
+      background: #212121;
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px;
+      padding: 20px 22px;
+      margin-bottom: 18px;
+    }
+    section h2 {
+      margin: 0 0 4px;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: #8f8f8f;
+      font-weight: 600;
+    }
+    section > p.hint { margin: 0 0 16px; color: #8a8a8a; font-size: 12.5px; }
+
+    .field {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      padding: 11px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .field:last-child { border-bottom: none; }
+    .field .label { flex: 1; min-width: 0; }
+    .field .label strong { display: block; font-weight: 500; color: #eee; font-size: 13.5px; }
+    .field .label span { display: block; color: #888; font-size: 12px; margin-top: 2px; }
+
+    input[type="range"] { width: 180px; accent-color: #4CAF50; cursor: pointer; }
+    input[type="checkbox"] { width: 17px; height: 17px; accent-color: #4CAF50; cursor: pointer; }
+    select {
+      background: #171717;
+      color: #eee;
+      border: 1px solid rgba(255,255,255,0.16);
+      border-radius: 6px;
+      padding: 7px 10px;
+      font-family: inherit;
+      font-size: 13px;
+      min-width: 210px;
+      max-width: 260px;
+      cursor: pointer;
+    }
+    .speed-value { font-variant-numeric: tabular-nums; min-width: 34px; text-align: right; color: #bbb; }
+    .row { display: flex; align-items: center; gap: 12px; }
+
+    button {
+      background: #2f2f2f;
+      color: #eee;
+      border: 1px solid rgba(255,255,255,0.16);
+      border-radius: 6px;
+      padding: 8px 15px;
+      font-family: inherit;
+      font-size: 13px;
+      cursor: pointer;
+      transition: background 0.15s ease, border-color 0.15s ease;
+    }
+    button:hover:not(:disabled) { background: #3a3a3a; border-color: rgba(255,255,255,0.3); }
+    button:disabled { opacity: 0.5; cursor: default; }
+    button.danger { color: #e58b83; border-color: rgba(229,139,131,0.4); }
+    button.danger:hover:not(:disabled) { background: #3a2523; }
+
+    #voice-search {
+      width: 100%;
+      box-sizing: border-box;
+      background: #171717;
+      border: 1px solid rgba(255,255,255,0.16);
+      border-radius: 6px;
+      padding: 9px 11px;
+      color: #eee;
+      font-family: inherit;
+      font-size: 13px;
+      margin-bottom: 10px;
+      outline: none;
+    }
+    #voice-search:focus { border-color: #4CAF50; }
+
+    #voice-list { max-height: 340px; overflow-y: auto; margin: 0 -6px; }
+    .voice {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 9px 10px;
+      border-radius: 6px;
+    }
+    .voice:hover { background: rgba(255,255,255,0.05); }
+    .voice .info { flex: 1; min-width: 0; }
+    .voice .info strong { display: block; font-weight: 500; font-size: 13px; color: #eee; }
+    .voice .info span { font-size: 11.5px; color: #8a8a8a; }
+    .voice .installed { color: #6fbf73; font-size: 11.5px; }
+
+    .bar { width: 90px; height: 5px; background: rgba(255,255,255,0.14); border-radius: 3px; overflow: hidden; }
+    .bar div { height: 100%; background: #4CAF50; transition: width 0.2s ease; }
+    .pct { font-size: 11.5px; color: #999; min-width: 34px; font-variant-numeric: tabular-nums; }
+    .icon-btn { width: 34px; height: 32px; padding: 0; font-size: 15px; }
+
+    .status { margin-top: 14px; font-size: 12.5px; color: #6fbf73; min-height: 18px; }
+    .status.error { color: #e58b83; }
+    .muted { color: #8a8a8a; font-size: 12.5px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <img id="logo" alt="">
+      <h1>TTSFlow Settings</h1>
+    </header>
+
+    <section>
+      <h2>Playback</h2>
+      <p class="hint">Defaults for every new reading session.</p>
+
+      <div class="field">
+        <div class="label">
+          <strong>Reading speed</strong>
+          <span>Applies immediately, including to a reader already open.</span>
+        </div>
+        <div class="row">
+          <input type="range" id="speed" min="0.5" max="2.5" step="0.1">
+          <span class="speed-value" id="speed-value">1.0x</span>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="label">
+          <strong>Continue to the next chapter</strong>
+          <span>Follow the "next" link automatically at the end of a chapter.</span>
+        </div>
+        <input type="checkbox" id="autoAdvance">
+      </div>
+
+      <div class="field">
+        <div class="label">
+          <strong>Resume where I stopped</strong>
+          <span>Reopen a chapter at the sentence you left off on.</span>
+        </div>
+        <input type="checkbox" id="resumePosition">
+      </div>
+
+      <div class="field">
+        <div class="label">
+          <strong>Scroll to follow the voice</strong>
+          <span>Keep the sentence being read centred on screen.</span>
+        </div>
+        <input type="checkbox" id="autoScroll">
+      </div>
+    </section>
+
+    <section>
+      <h2>Voice</h2>
+      <p class="hint">
+        System voices come from your operating system and need no download. On Linux they
+        come from speech-dispatcher and usually sound robotic. The neural voices below run
+        locally on your computer and sound far better.
+      </p>
+
+      <div class="field">
+        <div class="label">
+          <strong>System voice</strong>
+          <span id="system-voice-note">Loading…</span>
+        </div>
+        <select id="system-voice"></select>
+      </div>
+    </section>
+
+    <section>
+      <h2>Neural voices</h2>
+      <p class="hint">
+        Downloaded once and then used offline. Each voice is a self-contained model, so
+        deleting one does not affect the others.
+      </p>
+      <input type="search" id="voice-search" placeholder="Search by name or language, e.g. &quot;amy&quot; or &quot;de&quot;…">
+      <div id="voice-list"></div>
+      <div class="field">
+        <div class="label">
+          <strong id="voice-summary">No neural voices downloaded</strong>
+          <span>Stored on this computer only.</span>
+        </div>
+        <button id="delete-all" class="danger" disabled>Delete all voices</button>
+      </div>
+    </section>
+
+    <section>
+      <h2>Storage</h2>
+      <p class="hint">
+        The cache holds saved reading positions and recently synthesised audio. Clearing it
+        never deletes downloaded voices; those are managed above.
+      </p>
+      <div class="field">
+        <div class="label">
+          <strong>Cached reading data</strong>
+          <span id="cache-summary">Checking…</span>
+        </div>
+        <button id="clear-cache">Clear cache</button>
+      </div>
+    </section>
+
+    <div class="status" id="status"></div>
+  </div>
+  <script src="content/icons.js"></script>
+  <script src="options.js"></script>
+</body>
+</html>
