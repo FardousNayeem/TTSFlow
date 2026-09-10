@@ -7,6 +7,9 @@ export default {
     'package-lock.json',
     'web-ext-config.mjs',
     'piper/worker.src.js',
-    'web-ext-artifacts'
+    'web-ext-artifacts',
+    '.mcp.json',
+    '.gitattributes',
+    'web-ext-artifacts/**'
   ]
 };

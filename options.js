@@ -5,8 +5,15 @@
    up through its storage.onChanged listener, so nothing needs restarting.
    ========================================================================= */
 
+// Two sentences: enough to judge a voice's cadence and consonants without
+// making the user sit through a paragraph.
+const SAMPLE_TEXT =
+  'The lantern swung once, then went out. ' +
+  'Somewhere below, a door closed and the stairs began to creak.';
+
 const DEFAULTS = {
   speed: 1.0,
+  pitch: 1.0,
   engine: 'native',
   voiceName: '',
   voiceId: '',
@@ -23,6 +30,9 @@ let settings = { ...DEFAULTS };
 let piperVoices = [];
 const downloading = new Map();
 let statusTimer = null;
+
+// Which voice is auditioning right now: 'system', a voiceId, or null.
+let previewing = null;
 
 function status(message, isError = false) {
   const el = $('status');
@@ -57,6 +67,15 @@ function bindPlayback() {
     const value = parseFloat(speed.value);
     $('speed-value').textContent = `${value.toFixed(1)}x`;
     save({ speed: value });
+  });
+
+  const pitch = $('pitch');
+  pitch.value = String(settings.pitch);
+  $('pitch-value').textContent = settings.pitch.toFixed(2);
+  pitch.addEventListener('input', () => {
+    const value = parseFloat(pitch.value);
+    $('pitch-value').textContent = value.toFixed(2);
+    save({ pitch: value });
   });
 
   for (const key of ['autoAdvance', 'resumePosition', 'autoScroll']) {
@@ -98,6 +117,7 @@ async function bindSystemVoices() {
     $('system-voice-note').textContent =
       'None available. On Linux, install a speech-dispatcher voice, or use a neural voice.';
     select.disabled = true;
+    $('system-preview').disabled = true;
     select.appendChild(new Option('No system voices found', ''));
     return;
   }
@@ -115,6 +135,77 @@ async function bindSystemVoices() {
     status(`System voice set to ${select.value}.`);
     renderVoices();
   });
+}
+
+/* ---------------------------------------------------------------------
+   Previews
+
+   System voices are spoken straight from this page; neural ones are
+   synthesised in the background on a dedicated element, so auditioning a
+   voice never disturbs a reader that is mid-sentence in another tab.
+   --------------------------------------------------------------------- */
+
+function refreshPreviewButtons() {
+  const sys = $('system-preview');
+  sys.textContent = '';
+  sys.appendChild(TTSFlow.icon(previewing === 'system' ? 'stop' : 'play', { size: 16 }));
+  sys.title = previewing === 'system' ? 'Stop preview' : 'Preview this voice';
+  sys.setAttribute('aria-label', sys.title);
+  if (piperVoices.length) renderVoices();
+}
+
+async function stopPreview() {
+  window.speechSynthesis.cancel();
+  await bg('TTSFLOW_PIPER_PREVIEW_STOP');
+  previewing = null;
+  refreshPreviewButtons();
+}
+
+async function previewSystem() {
+  if (previewing === 'system') return stopPreview();
+  await stopPreview();
+
+  const name = $('system-voice').value;
+  const utterance = new SpeechSynthesisUtterance(SAMPLE_TEXT);
+  const voice = window.speechSynthesis.getVoices().find((v) => v.name === name);
+  if (voice) utterance.voice = voice;
+  utterance.rate = settings.speed;
+  utterance.pitch = Math.min(2, Math.max(0, settings.pitch));
+  utterance.onend = () => {
+    if (previewing === 'system') {
+      previewing = null;
+      refreshPreviewButtons();
+    }
+  };
+  utterance.onerror = utterance.onend;
+
+  previewing = 'system';
+  refreshPreviewButtons();
+  window.speechSynthesis.speak(utterance);
+}
+
+async function previewNeural(voice) {
+  if (previewing === voice.id) return stopPreview();
+  await stopPreview();
+
+  previewing = voice.id;
+  refreshPreviewButtons();
+  status(`Preparing ${voice.name}…`);
+
+  const reply = await bg('TTSFLOW_PIPER_PREVIEW', {
+    voiceId: voice.id,
+    rate: settings.speed,
+    pitch: settings.pitch,
+    text: SAMPLE_TEXT
+  });
+
+  if (reply.error) {
+    previewing = null;
+    refreshPreviewButtons();
+    status(`Could not preview ${voice.name}: ${reply.error}`, true);
+    return;
+  }
+  status(`Playing ${voice.name}.`);
 }
 
 /* ---------------------------------------------------------------------
@@ -223,6 +314,14 @@ function voiceActions(voice) {
   }
 
   if (voice.installed) {
+    const play = document.createElement('button');
+    play.className = 'icon-btn';
+    play.appendChild(TTSFlow.icon(previewing === voice.id ? 'stop' : 'play', { size: 16 }));
+    play.title = previewing === voice.id ? 'Stop preview' : `Preview ${voice.name}`;
+    play.setAttribute('aria-label', play.title);
+    play.addEventListener('click', () => previewNeural(voice));
+    wrap.appendChild(play);
+
     const use = document.createElement('button');
     use.textContent = 'Use';
     use.disabled = settings.engine === 'piper' && settings.voiceId === voice.id;
@@ -319,7 +418,17 @@ async function clearCache() {
    --------------------------------------------------------------------- */
 
 browser.runtime.onMessage.addListener((request) => {
-  if (!request || request.action !== 'TTSFLOW_PIPER_PROGRESS') return false;
+  if (!request || typeof request.action !== 'string') return false;
+
+  if (request.action === 'TTSFLOW_PIPER_PREVIEW_ENDED') {
+    if (previewing && previewing !== 'system') {
+      previewing = null;
+      refreshPreviewButtons();
+    }
+    return false;
+  }
+
+  if (request.action !== 'TTSFLOW_PIPER_PROGRESS') return false;
   if (!downloading.has(request.voiceId)) return false;
   downloading.set(request.voiceId, { loaded: request.loaded, total: request.total });
 
@@ -340,6 +449,13 @@ async function init() {
 
   bindPlayback();
   await bindSystemVoices();
+
+  $('system-preview').addEventListener('click', previewSystem);
+  refreshPreviewButtons();
+  window.addEventListener('pagehide', () => {
+    window.speechSynthesis.cancel();
+    bg('TTSFLOW_PIPER_PREVIEW_STOP');
+  });
 
   $('voice-search').addEventListener('input', renderVoices);
   $('delete-all').addEventListener('click', async () => {

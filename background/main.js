@@ -42,7 +42,8 @@ browser.runtime.onConnect.addListener((port) => {
 const BROADCASTS = new Set([
   'TTSFLOW_PIPER_PROGRESS',
   'TTSFLOW_PIPER_ENDED',
-  'TTSFLOW_PIPER_ERROR'
+  'TTSFLOW_PIPER_ERROR',
+  'TTSFLOW_PIPER_PREVIEW_ENDED'
 ]);
 
 async function route(request, sender) {
@@ -86,6 +87,17 @@ async function route(request, sender) {
 
     case 'TTSFLOW_PIPER_RATE':
       return Piper.setRate(request.rate);
+
+    case 'TTSFLOW_PIPER_PREVIEW':
+      return Piper.previewVoice({
+        voiceId: request.voiceId,
+        rate: request.rate,
+        pitch: request.pitch,
+        text: request.text
+      });
+
+    case 'TTSFLOW_PIPER_PREVIEW_STOP':
+      return Piper.stopPreview();
 
     // Derived data only: saved reading positions and synthesised audio.
     // Downloaded voice models are deliberately untouched — those are large,

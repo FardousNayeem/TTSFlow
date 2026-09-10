@@ -115,7 +115,22 @@
     .bar { width: 90px; height: 5px; background: rgba(255,255,255,0.14); border-radius: 3px; overflow: hidden; }
     .bar div { height: 100%; background: #4CAF50; transition: width 0.2s ease; }
     .pct { font-size: 11.5px; color: #999; min-width: 34px; font-variant-numeric: tabular-nums; }
-    .icon-btn { width: 34px; height: 32px; padding: 0; font-size: 15px; }
+    .icon-btn {
+      width: 34px;
+      height: 32px;
+      padding: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex: none;
+    }
+    button:focus-visible, select:focus-visible, input:focus-visible {
+      outline: 2px solid #4CAF50;
+      outline-offset: 2px;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      button, .bar div { transition: none; }
+    }
 
     .status { margin-top: 14px; font-size: 12.5px; color: #6fbf73; min-height: 18px; }
     .status.error { color: #e58b83; }
@@ -141,6 +156,17 @@
         <div class="row">
           <input type="range" id="speed" min="0.5" max="2.5" step="0.1">
           <span class="speed-value" id="speed-value">1.0x</span>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="label">
+          <strong>Voice pitch</strong>
+          <span>Works with both system and neural voices. 1.0 is the voice's own pitch.</span>
+        </div>
+        <div class="row">
+          <input type="range" id="pitch" min="0.7" max="1.4" step="0.05">
+          <span class="speed-value" id="pitch-value">1.00</span>
         </div>
       </div>
 
@@ -182,7 +208,10 @@
           <strong>System voice</strong>
           <span id="system-voice-note">Loading…</span>
         </div>
-        <select id="system-voice"></select>
+        <div class="row">
+          <select id="system-voice"></select>
+          <button class="icon-btn" id="system-preview" title="Preview this voice"></button>
+        </div>
       </div>
     </section>
 
@@ -190,7 +219,8 @@
       <h2>Neural voices</h2>
       <p class="hint">
         Downloaded once and then used offline. Each voice is a self-contained model, so
-        deleting one does not affect the others.
+        deleting one does not affect the others. Press play on any downloaded voice to
+        hear it read a sample.
       </p>
       <input type="search" id="voice-search" placeholder="Search by name or language, e.g. &quot;amy&quot; or &quot;de&quot;…">
       <div id="voice-list"></div>

@@ -12420,6 +12420,7 @@ function progressReporter(voiceId) {
 }
 async function getSession(voiceId) {
   if (session && sessionVoiceId === voiceId) return session;
+  TtsSession._instance = null;
   session = await TtsSession.create({
     voiceId,
     wasmPaths: WASM_PATHS,
@@ -12427,6 +12428,23 @@ async function getSession(voiceId) {
   });
   sessionVoiceId = voiceId;
   return session;
+}
+var SERIALIZED = /* @__PURE__ */ new Set(["synth", "remove", "flush"]);
+var queue = Promise.resolve();
+function serialize(job) {
+  const run = queue.then(job, job);
+  queue = run.then(
+    () => {
+    },
+    () => {
+    }
+  );
+  return run;
+}
+function resetSession() {
+  session = null;
+  sessionVoiceId = null;
+  TtsSession._instance = null;
 }
 var handlers = {
   // Voice catalogue joined with what is actually on disk. Sizes come from
@@ -12457,16 +12475,12 @@ var handlers = {
     return { voiceId };
   },
   async remove({ voiceId }) {
-    if (sessionVoiceId === voiceId) {
-      session = null;
-      sessionVoiceId = null;
-    }
+    if (sessionVoiceId === voiceId) resetSession();
     await remove(voiceId);
     return { voiceId };
   },
   async flush() {
-    session = null;
-    sessionVoiceId = null;
+    resetSession();
     await flush();
     return {};
   },
@@ -12486,7 +12500,8 @@ self.onmessage = async (event) => {
     return;
   }
   try {
-    const { transfer, ...result } = await handler(payload || {}) || {};
+    const job = () => handler(payload || {});
+    const { transfer, ...result } = await (SERIALIZED.has(action) ? serialize(job) : job()) || {};
     self.postMessage({ id, ok: true, ...result }, transfer || []);
   } catch (error) {
     post(id, false, { error: String(error && error.message || error) });

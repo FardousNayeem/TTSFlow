@@ -49,6 +49,7 @@
 
       this.lastText = '';
       this.rate = 1;
+      this.pitch = 1;
       this.voiceName = '';
       this.paused = false;
     }
@@ -84,10 +85,11 @@
       });
     }
 
-    speak(text, { rate = 1, voiceName = '' } = {}) {
+    speak(text, { rate = 1, pitch = 1, voiceName = '' } = {}) {
       this.stop();
       this.lastText = text;
       this.rate = rate;
+      this.pitch = pitch;
       this.voiceName = voiceName;
       this.paused = false;
 
@@ -99,6 +101,8 @@
       const voice = this.synth.getVoices().find((v) => v.name === voiceName);
       if (voice) utterance.voice = voice;
       utterance.rate = rate;
+      // The Web Speech pitch range is 0-2 around a default of 1.
+      utterance.pitch = Math.min(2, Math.max(0, pitch));
 
       utterance.onstart = () => {
         if (token === this.token) this.hasEverSpoken = true;
@@ -140,19 +144,22 @@
       if (!this.paused) return;
       this.paused = false;
       if (this.lastText) {
-        this.speak(this.lastText, { rate: this.rate, voiceName: this.voiceName });
+        this.speak(this.lastText, { rate: this.rate, pitch: this.pitch, voiceName: this.voiceName });
       }
     }
 
     setRate(rate) {
       this.rate = rate;
       if (!this.paused && this.lastText) {
-        this.speak(this.lastText, { rate, voiceName: this.voiceName });
+        this.speak(this.lastText, { rate, pitch: this.pitch, voiceName: this.voiceName });
       }
     }
 
     stop() {
       this.token++;
+      // Matches PiperEngine: a stopped engine is not a paused one, so the
+      // reader can tell "resume" apart from "start again".
+      this.paused = false;
       this.#stopWatchdog();
       if (this.utterance) {
         this.utterance.onend = null;
@@ -195,7 +202,7 @@
           // Retry a sentence once before giving up on it.
           if (this.retriedText !== this.lastText) {
             this.retriedText = this.lastText;
-            this.speak(this.lastText, { rate: this.rate, voiceName: this.voiceName });
+            this.speak(this.lastText, { rate: this.rate, pitch: this.pitch, voiceName: this.voiceName });
             return;
           }
           // Nothing has ever spoken here, so the engine is unavailable
@@ -230,6 +237,7 @@
 
       this.voiceId = '';
       this.rate = 1;
+      this.pitch = 1;
       this.token = 0;
       this.paused = false;
     }
@@ -251,9 +259,10 @@
       return false;
     }
 
-    async speak(text, { rate = 1, voiceId = '', nextText = '' } = {}) {
+    async speak(text, { rate = 1, pitch = 1, voiceId = '', nextText = '' } = {}) {
       this.voiceId = voiceId || this.voiceId;
       this.rate = rate;
+      this.pitch = pitch;
       this.paused = false;
       const token = ++this.token;
 
@@ -261,7 +270,8 @@
         text,
         nextText,
         voiceId: this.voiceId,
-        rate
+        rate,
+        pitch
       });
 
       if (token !== this.token) return;

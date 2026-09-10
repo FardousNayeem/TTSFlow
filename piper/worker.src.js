@@ -46,6 +46,15 @@ function progressReporter(voiceId) {
 
 async function getSession(voiceId) {
   if (session && sessionVoiceId === voiceId) return session;
+
+  // The library keeps one TtsSession on a static, and its *constructor*
+  // returns that instance for every later create(). It assigns the new
+  // voiceId to the field but never re-runs init(), so the loaded ONNX model
+  // stays on whichever voice was used first: picking a different voice
+  // silently kept speaking in the old one. Dropping the static forces a
+  // genuinely new session, which loads the right model.
+  TtsSession._instance = null;
+
   session = await TtsSession.create({
     voiceId,
     wasmPaths: WASM_PATHS,
@@ -53,6 +62,39 @@ async function getSession(voiceId) {
   });
   sessionVoiceId = voiceId;
   return session;
+}
+
+/* -------------------------------------------------------------------------
+   Job serialisation.
+
+   The reader deliberately fires the next sentence's synthesis off without
+   awaiting it, so two synth jobs are routinely in flight together. That is
+   not safe: an ORT InferenceSession cannot be run() concurrently, and two
+   getSession calls for different voices would interleave and leave the
+   session pointing at one voice's model while reporting the other's id.
+
+   Model-touching jobs therefore run one at a time. Downloads and catalogue
+   reads stay off the queue, so fetching a 60MB voice never blocks playback.
+   ------------------------------------------------------------------------- */
+
+const SERIALIZED = new Set(['synth', 'remove', 'flush']);
+
+let queue = Promise.resolve();
+
+function serialize(job) {
+  const run = queue.then(job, job);
+  // Keep the chain alive regardless of how this job ended.
+  queue = run.then(
+    () => {},
+    () => {}
+  );
+  return run;
+}
+
+function resetSession() {
+  session = null;
+  sessionVoiceId = null;
+  TtsSession._instance = null;
 }
 
 const handlers = {
@@ -88,17 +130,13 @@ const handlers = {
   },
 
   async remove({ voiceId }) {
-    if (sessionVoiceId === voiceId) {
-      session = null;
-      sessionVoiceId = null;
-    }
+    if (sessionVoiceId === voiceId) resetSession();
     await remove(voiceId);
     return { voiceId };
   },
 
   async flush() {
-    session = null;
-    sessionVoiceId = null;
+    resetSession();
     await flush();
     return {};
   },
@@ -122,7 +160,9 @@ self.onmessage = async (event) => {
   }
 
   try {
-    const { transfer, ...result } = (await handler(payload || {})) || {};
+    const job = () => handler(payload || {});
+    const { transfer, ...result } =
+      (await (SERIALIZED.has(action) ? serialize(job) : job())) || {};
     self.postMessage({ id, ok: true, ...result }, transfer || []);
   } catch (error) {
     post(id, false, { error: String((error && error.message) || error) });

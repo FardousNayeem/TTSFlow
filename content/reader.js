@@ -24,7 +24,6 @@
   let overlay = null;
   let textContainer = null;
 
-  let engine = null;
   let nativeEngine = null;
   let piperEngine = null;
   let voicePanel = null;
@@ -36,6 +35,7 @@
 
   const settings = {
     speed: 1.0,
+    pitch: 1.0,
     engine: 'native',
     voiceName: '',
     voiceId: '',
@@ -75,6 +75,8 @@
 
     const speed = parseFloat(stored.speed);
     settings.speed = Number.isFinite(speed) ? Math.min(2.5, Math.max(0.5, speed)) : 1.0;
+    const pitch = parseFloat(stored.pitch);
+    settings.pitch = Number.isFinite(pitch) ? Math.min(1.4, Math.max(0.7, pitch)) : 1.0;
     settings.engine = stored.engine === 'piper' ? 'piper' : 'native';
     settings.voiceName = typeof stored.voiceName === 'string' ? stored.voiceName : '';
     settings.voiceId = typeof stored.voiceId === 'string' ? stored.voiceId : '';
@@ -88,18 +90,45 @@
   // while a reader is already open.
   browser.storage.onChanged.addListener((changes, area) => {
     if (area !== 'local') return;
+
+    let speedChanged = false;
+    let voiceChanged = false;
+    let resynthNeeded = false;
+
     for (const key of PREF_KEYS) {
       if (!(key in changes)) continue;
       const value = changes[key].newValue;
-      if (value !== undefined) settings[key] = value;
+      // Equal means this is the echo of our own write; reacting to it caused
+      // a second setRate per slider tick, which re-spoke the sentence twice.
+      if (value === undefined || value === settings[key]) continue;
+      settings[key] = value;
+
+      if (key === 'speed') speedChanged = true;
+      if (key === 'pitch') resynthNeeded = true;
+      if (key === 'engine' || key === 'voiceName' || key === 'voiceId') voiceChanged = true;
     }
-    const val = document.getElementById('ttsflow-speed-val');
-    const slider = document.getElementById('ttsflow-speed-slider');
-    if (val && slider && 'speed' in changes) {
-      val.textContent = settings.speed.toFixed(1);
-      slider.value = String(settings.speed);
+
+    if (speedChanged) {
+      const val = document.getElementById('ttsflow-speed-val');
+      const slider = document.getElementById('ttsflow-speed-slider');
+      if (val) val.textContent = settings.speed.toFixed(1);
+      if (slider) slider.value = String(settings.speed);
       if (isPlaying) activeEngine().setRate(settings.speed);
     }
+
+    // A voice picked on the options page has to reach the overlay's own
+    // picker, or its label keeps naming the voice you just replaced.
+    if (voiceChanged && voicePanel) {
+      voicePanel.setSelection({
+        engine: settings.engine,
+        voiceName: settings.voiceName,
+        voiceId: settings.voiceId
+      });
+    }
+
+    // Pitch and voice both change how the sentence must be produced, so the
+    // current one is re-spoken rather than waiting for the next.
+    if ((voiceChanged || resynthNeeded) && isPlaying) playCurrentSentence();
   });
 
   function saveSettings() {
@@ -282,6 +311,7 @@
   function speakOptions() {
     return {
       rate: settings.speed,
+      pitch: settings.pitch,
       voiceName: settings.voiceName,
       voiceId: settings.voiceId,
       nextText: sentences[currentIndex + 1] || ''
@@ -538,11 +568,25 @@
   }
 
   function attachEventListeners() {
+    // Dragging fires oninput continuously. Piper only has to change a
+    // playbackRate, so it tracks live; the system engine can only change
+    // speed by re-speaking the sentence, so that waits until the drag
+    // settles. Saving is debounced too, instead of a storage write per pixel.
+    let rateTimer = null;
     document.getElementById('ttsflow-speed-slider').oninput = (e) => {
       settings.speed = parseFloat(e.target.value);
       document.getElementById('ttsflow-speed-val').textContent = settings.speed.toFixed(1);
-      saveSettings();
-      activeEngine().setRate(settings.speed);
+
+      const target = activeEngine();
+      if (target.id === 'piper') target.setRate(settings.speed);
+
+      clearTimeout(rateTimer);
+      rateTimer = setTimeout(() => {
+        saveSettings();
+        if (activeEngine().id === 'native' && isPlaying) {
+          activeEngine().setRate(settings.speed);
+        }
+      }, 300);
     };
 
     document.getElementById('ttsflow-close').onclick = closeTTSFlow;
@@ -587,14 +631,23 @@
     if (isPlaying) playCurrentSentence();
   }
 
-  function togglePlayPause() {
+  async function togglePlayPause() {
     isPlaying = !isPlaying;
     setPlayPauseIcon();
-    if (isPlaying) activeEngine().resume();
-    else {
+
+    if (!isPlaying) {
       activeEngine().pause();
       savePosition();
+      return;
     }
+
+    // Stop clears the engine, and resume() only revives a *paused* one, so
+    // pressing play after stop used to do nothing at all. Stop also hands
+    // back the reader lock, so take it again before making any sound.
+    const target = activeEngine();
+    if (!target.paused) await bg('TTSFLOW_CLAIM');
+    if (target.paused) target.resume();
+    else playCurrentSentence();
   }
 
   /* ---------------------------------------------------------------------

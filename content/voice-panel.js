@@ -161,7 +161,15 @@
         if (voice) voice.installed = false;
         // Fall back to a system voice if the active one was just deleted.
         if (this.selection.engine === 'piper' && this.selection.voiceId === voiceId) {
-          this.pickSystem(this.systemVoices[0]);
+          if (this.systemVoices.length) {
+            this.pickSystem(this.systemVoices[0]);
+          } else {
+            // No system voice to fall back to, which is the normal state on
+            // a Linux box with no speech-dispatcher voices. Clear the
+            // selection rather than leaving it aimed at a deleted model.
+            this.setSelection({ engine: 'native', voiceId: '', voiceName: '' });
+            this.onSelect(this.selection);
+          }
         }
         this.onNotice(`Deleted ${label}.`);
       } else {

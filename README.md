@@ -24,6 +24,8 @@ It can:
 * **Click any sentence to jump there**
 * **Remember where you stopped**
 * **Adjust reading speed from 0.5× to 2.5×**
+* **Adjust voice pitch, on system and neural voices alike**
+* **Preview any voice before you commit to it**
 * **Use your system's voices**
 * **Use offline neural Piper voices**
 * **Keep neural speech processing on your own machine**
@@ -281,6 +283,14 @@ Keeping inference in the background prevents a host page's CSP from interfering 
 ### `content/engines.js`
 
 Provides one interface for both system and neural voices, keeping the reader independent from the selected TTS engine.
+
+### Pitch
+
+Piper's VITS models accept only `[noise_scale, length_scale, noise_w]`, so there is no pitch input to synthesis.
+
+Instead the generated WAV is re-labelled with a scaled sample rate. That resamples it on playback, raising pitch and shortening duration by the same factor, and the audio element's pitch-preserving time-stretch restores the original duration.
+
+Pitch and tempo end up independent for the cost of rewriting eight header bytes.
 
 ### `piper/worker.src.js`
 
