@@ -55,7 +55,7 @@ async function ensureContentScripts(tabId) {
 }
 
 function render() {
-  startBtn.textContent = running ? 'Stop Reading' : 'Start Reading';
+  startBtn.textContent = running ? 'Stop Playing' : 'Start Playing';
   startBtn.classList.toggle('stop', running);
 }
 

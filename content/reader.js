@@ -7,10 +7,6 @@
    typography, theme and reader preferences while the voice follows along.
    The controls live in a small dock on the right edge.
 
-   Reading only ever starts from an explicit user action or from a resume
-   token the background issued to THIS tab for THIS navigation. The old
-   origin-wide localStorage flag is gone: it started every tab of the same
-   site, and it survived restarts, so pages read themselves unprompted.
    ========================================================================= */
 
 (() => {
@@ -68,8 +64,6 @@
       stored = {};
     }
 
-    // One-time migration off localStorage, and removal of the flag that
-    // used to make unrelated tabs start reading by themselves.
     try {
       if (stored.speed == null) stored.speed = parseFloat(localStorage.getItem('ttsflow_speed'));
       if (stored.voiceName == null) stored.voiceName = localStorage.getItem('ttsflow_voice');
@@ -591,13 +585,30 @@
     if (!node || node.nodeType !== Node.TEXT_NODE) return -1;
 
     for (let i = 0; i < ranges.length; i++) {
+      const range = ranges[i];
+      // caretPositionFromPoint snaps to the nearest character, so a click
+      // in the empty margin beside a line lands "inside" a sentence's text
+      // node. Require the pixel to fall in the sentence's own rects too.
+      if (!pointHitsRange(x, y, range)) continue;
       try {
-        if (ranges[i].isPointInRange(node, offset)) return i;
+        if (range.isPointInRange(node, offset)) return i;
       } catch (e) {
         /* range from a detached node */
       }
     }
     return -1;
+  }
+
+  // True when (x, y) sits inside one of the range's rendered line boxes.
+  // getClientRects(), not getBoundingClientRect(): a wrapped sentence has
+  // one rect per line, and the bounding box would cover the whole column.
+  function pointHitsRange(x, y, range) {
+    const rects = range.getClientRects();
+    for (let i = 0; i < rects.length; i++) {
+      const r = rects[i];
+      if (x >= r.left && x <= r.right && y >= r.top && y <= r.bottom) return true;
+    }
+    return false;
   }
 
   // Click a sentence on the page to jump there. Links, form controls and
