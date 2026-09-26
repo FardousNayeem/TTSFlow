@@ -40,7 +40,7 @@ You don't have to babysit the page.
 
 TTSFlow is already available on the Firefox Add-ons store.
 
-[Install TTSFlow → Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/ttsflow/?utm_source=chatgpt.com)
+[Install TTSFlow → Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/ttsflow/)
 
 After installing:
 
