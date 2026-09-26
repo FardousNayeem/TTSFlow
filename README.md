@@ -4,11 +4,11 @@
 
 **TTSFlow is a Firefox extension made for people who read web novels on sites like Royal Road, WebNovels, Scribble Hub, and similar platforms.**
 
-Press **Start Reading**, put your headphones on, and let TTSFlow handle the rest.
+Press **Start Playing**, put your headphones on, and let TTSFlow handle the rest.
 
 **No copying chapters. No uploading text. No cloud required.**
 
-[🦊 Get TTSFlow for Firefox](https://addons.mozilla.org/en-US/firefox/addon/ttsflow/?utm_source=chatgpt.com)
+[🦊 Get TTSFlow for Firefox](https://addons.mozilla.org/en-US/firefox/addon/ttsflow/)
 
 ---
 
@@ -46,7 +46,7 @@ After installing:
 
 1. Open a chapter on your favourite web-novel site.
 2. Click the **TTSFlow** icon in Firefox.
-3. Click **Start Reading**.
+3. Click **Start Playing**.
 4. Listen.
 
 That's it.
@@ -97,7 +97,7 @@ When it reaches the end of a chapter, TTSFlow looks for the site's **Next Chapte
 
 That means your workflow can become:
 
-> **Open novel → Start Reading → listen**
+> **Open novel → Click Start Playing → listen**
 
 instead of:
 
@@ -268,50 +268,6 @@ The packaged extension therefore does not load executable code from the network.
 
 ---
 
-## How it works
-
-TTSFlow separates the reader from the speech engine.
-
-### `background/arbiter.js`
-
-Controls which browser tab owns the reader.
-
-Chapter-to-chapter autoplay uses a single-use token tied to the originating tab and expiring after 90 seconds.
-
-### `background/piper.js`
-
-Owns the neural inference worker and audio playback.
-
-Keeping inference in the background prevents a host page's CSP from interfering with the runtime.
-
-### `content/engines.js`
-
-Provides one interface for both system and neural voices, keeping the reader independent from the selected TTS engine.
-
-### Pitch
-
-Piper's VITS models accept only `[noise_scale, length_scale, noise_w]`, so there is no pitch input to synthesis.
-
-Instead the generated WAV is re-labelled with a scaled sample rate. That resamples it on playback, raising pitch and shortening duration by the same factor, and the audio element's pitch-preserving time-stretch restores the original duration.
-
-Pitch and tempo end up independent for the cost of rewriting eight header bytes.
-
-### `piper/worker.src.js`
-
-The Piper worker source is bundled into:
-
-```text
-piper/worker.js
-```
-
-by:
-
-```bash
-npm run vendor
-```
-
----
-
 ## Linux note
 
 On Linux, Firefox system voices commonly come through speech-dispatcher, often using espeak-ng.
@@ -328,9 +284,9 @@ For a more natural experience, use a Piper neural voice instead.
 
 If you're already spending hours reading web novels, let TTSFlow turn some of that reading time into listening time.
 
-**Install it. Open a chapter. Press Start Reading.**
+**Install it. Open a chapter. Press Start Playing.**
 
-[🦊 Install TTSFlow on Firefox](https://addons.mozilla.org/en-US/firefox/addon/ttsflow/?utm_source=chatgpt.com)
+[🦊 Install TTSFlow on Firefox](https://addons.mozilla.org/en-US/firefox/addon/ttsflow/)
 
 ---
 

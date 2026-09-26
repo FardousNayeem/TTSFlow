@@ -112,6 +112,7 @@
     let speedChanged = false;
     let voiceChanged = false;
     let resynthNeeded = false;
+    let autoplayChanged = false;
 
     for (const key of PREF_KEYS) {
       if (!(key in changes)) continue;
@@ -124,7 +125,10 @@
       if (key === 'speed') speedChanged = true;
       if (key === 'pitch') resynthNeeded = true;
       if (key === 'engine' || key === 'voiceName' || key === 'voiceId') voiceChanged = true;
+      if (key === 'autoAdvance') autoplayChanged = true;
     }
+
+    if (autoplayChanged) renderAutoplay();
 
     if (speedChanged) {
       settings.speed = clampSpeed(parseFloat(settings.speed) || 1);
@@ -168,7 +172,6 @@
         at: Date.now()
       };
 
-      // Keep the newest 60 chapters; this is a convenience, not an archive.
       const entries = Object.entries(positions).sort((a, b) => b[1].at - a[1].at);
       await browser.storage.local.set({ positions: Object.fromEntries(entries.slice(0, 60)) });
     } catch (e) {
@@ -197,19 +200,6 @@
     }
     return 0;
   }
-
-  /* ---------------------------------------------------------------------
-     Text extraction — straight from the live page.
-
-     Working on the rendered document rather than a copy of its markup
-     means visibility is free: Royal Road plants an anti-copy paragraph in
-     every chapter and hides it with a per-page class, and checkVisibility()
-     drops it without the reader having to know the class.
-     --------------------------------------------------------------------- */
-
-  // Tried in order. querySelector with a comma-joined list returns the first
-  // match in document order, not selector order, so a generic wrapper near
-  // the top of the page would otherwise beat the real chapter container.
   const CONTENT_SELECTORS = [
     '.reader-container', '.chapter-inner', '.chapter-body', '.chapter-content',
     '#chapter-content', '#chapter-container', '.chapter-text', '.reader-content',
@@ -856,11 +846,8 @@
      Below 720px wide it becomes a pill along the bottom instead.
      --------------------------------------------------------------------- */
 
-  const IDLE_MS = 2600;
-  let idleTimer = null;
   let speedPanel = null;
   let speedRoot = null;
-  let dockPointerInside = false;
 
   function iconButton(id, iconName, label, size = 18) {
     const button = el('button', { id, type: 'button', className: 'ttsflow-dock-btn', title: label });
@@ -903,8 +890,10 @@
     const play = iconButton('ttsflow-playpause', 'pause', 'Pause', 20);
     play.classList.add('is-primary');
     const next = iconButton('ttsflow-next', 'next', 'Next sentence', 16);
+    const autoplay = iconButton('ttsflow-autoplay', 'repeat', 'Autoplay next chapter', 16);
+    autoplay.setAttribute('aria-pressed', 'false');
     const transport = el('div', { className: 'ttsflow-transport' });
-    transport.append(prev, play, next);
+    transport.append(prev, play, next, autoplay);
 
     const progress = el('span', { id: 'ttsflow-progress-text' });
     progress.setAttribute('aria-live', 'off');
@@ -977,7 +966,6 @@
       onOpen: (panel) => {
         closeSpeedPanel();
         placePopover(panel);
-        wakeDock();
       },
       onNotice: toast
     });
@@ -991,8 +979,8 @@
 
     renderSpeed();
     renderProgress();
+    renderAutoplay();
     attachEventListeners();
-    wakeDock();
   }
 
   function renderSpeed() {
@@ -1013,6 +1001,16 @@
         chip.classList.toggle('is-active', Math.abs(parseFloat(chip.dataset.speed) - settings.speed) < 0.001);
       }
     }
+  }
+
+  function renderAutoplay() {
+    const btn = document.getElementById('ttsflow-autoplay');
+    if (!btn) return;
+    const on = !!settings.autoAdvance;
+    btn.classList.toggle('is-active', on);
+    btn.setAttribute('aria-pressed', String(on));
+    btn.title = on ? 'Autoplay next chapter: on' : 'Autoplay next chapter: off';
+    btn.setAttribute('aria-label', btn.title);
   }
 
   function renderProgress() {
@@ -1043,7 +1041,6 @@
     btn.setAttribute('aria-label', btn.title);
     if (dock) dock.classList.toggle('is-paused', !isPlaying);
     renderProgress();
-    wakeDock();
   }
 
   /* --- popovers --- */
@@ -1071,7 +1068,6 @@
     document.getElementById('ttsflow-speed-button').setAttribute('aria-expanded', 'true');
     placePopover(speedPanel);
     document.getElementById('ttsflow-speed-slider').focus();
-    wakeDock();
   }
 
   function closeSpeedPanel() {
@@ -1079,36 +1075,10 @@
     speedPanel.hidden = true;
     const button = document.getElementById('ttsflow-speed-button');
     if (button) button.setAttribute('aria-expanded', 'false');
-    scheduleIdle();
   }
 
   function anyPopoverOpen() {
     return (speedPanel && !speedPanel.hidden) || (voicePanel && voicePanel.open);
-  }
-
-  /* --- idle fade --- */
-
-  function wakeDock() {
-    if (!dock) return;
-    dock.classList.remove('is-idle');
-    scheduleIdle();
-  }
-
-  function scheduleIdle() {
-    clearTimeout(idleTimer);
-    if (!dock) return;
-    idleTimer = setTimeout(() => {
-      if (!dock || !isPlaying || dockPointerInside) return;
-      // Check again later rather than giving up: nothing else re-arms the
-      // fade when a popover closes by an outside click. Only keyboard focus
-      // holds the dock awake; a clicked button keeps focus too, and used to
-      // stop the dock from ever fading again.
-      if (anyPopoverOpen() || dock.querySelector(':focus-visible')) {
-        scheduleIdle();
-        return;
-      }
-      dock.classList.add('is-idle');
-    }, IDLE_MS);
   }
 
   /* --- dragging --- */
@@ -1247,19 +1217,14 @@
     document.getElementById('ttsflow-next').onclick = () => nudge(1);
     document.getElementById('ttsflow-prev').onclick = () => nudge(-1);
     document.getElementById('ttsflow-playpause').onclick = togglePlayPause;
+    document.getElementById('ttsflow-autoplay').onclick = () => {
+      settings.autoAdvance = !settings.autoAdvance;
+      saveSettings();
+      renderAutoplay();
+      toast(`Autoplay next chapter ${settings.autoAdvance ? 'on' : 'off'}.`);
+    };
 
     wireDrag(document.getElementById('ttsflow-grip'));
-
-    dock.addEventListener('pointerenter', () => {
-      dockPointerInside = true;
-      wakeDock();
-    });
-    dock.addEventListener('pointerleave', () => {
-      dockPointerInside = false;
-      scheduleIdle();
-    });
-    dock.addEventListener('focusin', wakeDock);
-    dock.addEventListener('focusout', scheduleIdle);
 
     document.addEventListener('click', onOutsideClick, true);
     document.addEventListener('click', onPageClick);
@@ -1541,7 +1506,6 @@
     if (dismissGesturePrompt) dismissGesturePrompt();
     if (voicePanel) voicePanel.destroy();
     voicePanel = null;
-    clearTimeout(idleTimer);
     clearHighlight();
 
     if (dock) {
@@ -1549,7 +1513,6 @@
       dock = null;
       speedPanel = null;
       speedRoot = null;
-      dockPointerInside = false;
     }
 
     document.removeEventListener('click', onOutsideClick, true);

@@ -148,11 +148,6 @@
   to   { opacity: 1; translate: 0 0; }
 }
 
-/* Recedes while you listen; any pointer or focus brings it back. */
-#ttsflow-dock.is-idle {
-  opacity: 0.38;
-}
-
 #ttsflow-dock.is-dragging {
   transition: none;
   cursor: grabbing;
@@ -230,6 +225,11 @@
 
 #ttsflow-dock .ttsflow-transport .ttsflow-dock-btn:hover {
   background: var(--ttsflow-hover);
+}
+
+#ttsflow-dock #ttsflow-autoplay.is-active {
+  color: var(--ttsflow-accent);
+  background: var(--ttsflow-accent-soft);
 }
 
 #ttsflow-dock .ttsflow-transport #ttsflow-playpause {

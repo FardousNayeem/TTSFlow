@@ -33,7 +33,8 @@ const WANTED = {
   speaker: ['outline', 'volume'],
   voice: ['outline', 'microphone-2'],
   speed: ['outline', 'brand-speedtest'],
-  grip: ['outline', 'grip-horizontal']
+  grip: ['outline', 'grip-horizontal'],
+  repeat: ['outline', 'repeat'],
 };
 
 if (!fs.existsSync(iconsDir)) {
