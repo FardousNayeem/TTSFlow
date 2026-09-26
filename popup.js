@@ -44,6 +44,9 @@ async function bg(action) {
 async function ensureContentScripts(tabId) {
   if (await send(tabId, { action: 'TTSFLOW_PING' })) return true;
   try {
+    // The stylesheet has to come too: the dock and the sentence highlight
+    // live on the page itself and are unstyled without it.
+    await browser.scripting.insertCSS({ target: { tabId }, files: ['styles.css'] });
     await browser.scripting.executeScript({ target: { tabId }, files: CONTENT_FILES });
   } catch (e) {
     return false;

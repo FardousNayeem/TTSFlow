@@ -1,529 +1,779 @@
+/* =========================================================================
+   TTSFlow in-page styles.
+
+   Everything here lands on someone else's site, so it is scoped to TTSFlow
+   ids, starts from a reset against the host page's own button and input
+   rules, and takes its palette from the tokens below. One accent (emerald),
+   one radius scale: 16 for surfaces, 10 for controls, full for chips.
+   ========================================================================= */
+
+#ttsflow-dock,
+.ttsflow-toast,
+#ttsflow-gesture {
+  --ttsflow-surface: rgba(250, 250, 249, 0.86);
+  --ttsflow-surface-solid: #fafaf9;
+  --ttsflow-raised: #ffffff;
+  --ttsflow-border: rgba(24, 24, 27, 0.1);
+  --ttsflow-text: #27272a;
+  --ttsflow-muted: #71717a;
+  --ttsflow-hover: rgba(24, 24, 27, 0.06);
+  --ttsflow-accent: #059669;
+  --ttsflow-accent-hover: #047857;
+  --ttsflow-accent-ink: #ffffff;
+  --ttsflow-accent-soft: rgba(5, 150, 105, 0.12);
+  --ttsflow-danger: #b91c1c;
+  --ttsflow-danger-soft: rgba(185, 28, 28, 0.08);
+  --ttsflow-edge: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  --ttsflow-shadow: 0 12px 32px -14px rgba(39, 39, 42, 0.35), 0 2px 6px -2px rgba(39, 39, 42, 0.12);
+  --ttsflow-font: system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu, Cantarell, sans-serif;
+  --ttsflow-ease: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (prefers-color-scheme: dark) {
+  #ttsflow-dock,
+  .ttsflow-toast,
+  #ttsflow-gesture {
+    --ttsflow-surface: rgba(28, 28, 31, 0.84);
+    --ttsflow-surface-solid: #1c1c1f;
+    --ttsflow-raised: #26262a;
+    --ttsflow-border: rgba(255, 255, 255, 0.09);
+    --ttsflow-text: #e4e4e7;
+    --ttsflow-muted: #a1a1aa;
+    --ttsflow-hover: rgba(255, 255, 255, 0.07);
+    --ttsflow-accent: #34d399;
+    --ttsflow-accent-hover: #6ee7b7;
+    --ttsflow-accent-ink: #052e1f;
+    --ttsflow-accent-soft: rgba(52, 211, 153, 0.14);
+    --ttsflow-danger: #f87171;
+    --ttsflow-danger-soft: rgba(248, 113, 113, 0.1);
+    --ttsflow-edge: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    --ttsflow-shadow: 0 14px 36px -12px rgba(0, 0, 0, 0.6), 0 2px 6px -2px rgba(0, 0, 0, 0.4);
+  }
+}
+
+/* Reset. Host pages style bare `button`, `input` and `img` freely (Royal
+   Road's Bootstrap does), and those rules would otherwise leak in. Every
+   radius below is !important because Royal Road also ships
+   `div, span, button, … { border-radius: 0 !important }`, which no amount
+   of specificity outranks. An id
+   plus one element outranks nearly every site rule; component rules below
+   use an id plus a class, so they in turn outrank this. */
+#ttsflow-dock,
+#ttsflow-dock *,
+#ttsflow-gesture,
+#ttsflow-gesture *,
+.ttsflow-toast {
+  box-sizing: border-box;
+  margin: 0;
+  float: none;
+  min-width: 0;
+  max-width: none;
+  letter-spacing: normal;
+  text-transform: none;
+  text-shadow: none;
+  text-align: left;
+  font-family: var(--ttsflow-font);
+  line-height: 1.3;
+}
+
+#ttsflow-dock button,
+#ttsflow-gesture button {
+  appearance: none;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  box-shadow: none;
+  height: auto;
+  width: auto;
+}
+
+#ttsflow-dock [hidden] {
+  display: none !important;
+}
+
+#ttsflow-dock svg {
+  display: block;
+  pointer-events: none;
+  flex-shrink: 0;
+}
+
 /* =========================================
-   1. MAIN OVERLAY & TYPOGRAPHY
+   1. HIGHLIGHT ON THE PAGE ITSELF
    ========================================= */
-#ttsflow-overlay {
+
+::highlight(ttsflow-current) {
+  background-color: rgba(16, 185, 129, 0.3);
+}
+
+/* Browsers without the Highlight API mark the paragraph instead. */
+.ttsflow-block-active {
+  background-color: rgba(16, 185, 129, 0.12) !important;
+  border-radius: 6px !important;
+  box-shadow: 0 0 0 6px rgba(16, 185, 129, 0.12);
+}
+
+/* =========================================
+   2. DOCK
+   ========================================= */
+
+#ttsflow-dock {
   position: fixed;
-  top: 0; left: 0; width: 100%; height: 100%;
-  background-color: rgba(18, 18, 18, 0.97);
-  z-index: 999999;
+  top: var(--ttsflow-dock-y, 50%);
+  right: 14px;
+  z-index: 2147483000;
+  transform: translateY(-50%);
+  width: 50px;
+  padding: 6px 5px 8px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  color: #d1d1d1;
-  font-family: Georgia, serif; 
-  overflow-y: auto;
-  padding-bottom: 60px;
+  gap: 2px;
+  color: var(--ttsflow-text);
+  font-size: 12px;
+  background: var(--ttsflow-surface);
+  border: 1px solid var(--ttsflow-border);
+  border-radius: 16px !important;
+  box-shadow: var(--ttsflow-edge), var(--ttsflow-shadow);
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  transition: opacity 0.45s var(--ttsflow-ease);
+  animation: ttsflow-dock-in 0.4s var(--ttsflow-ease);
 }
 
-#ttsflow-text-container {
-  max-width: 750px;
-  font-size: 21px;
-  line-height: 1.7;
-  margin-top: 100px; 
+@keyframes ttsflow-dock-in {
+  from { opacity: 0; translate: 10px 0; }
+  to   { opacity: 1; translate: 0 0; }
 }
 
-/* =========================================
-   2. SLEEK UNIFIED NAVBAR
-   ========================================= */
-#ttsflow-navbar {
-  position: fixed;
-  top: 0; left: 0; width: 100%;
-  height: 65px;
-  background: rgba(25, 25, 25, 0.6); 
-  backdrop-filter: blur(12px); 
-  -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05); 
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 40px; 
-  z-index: 1000000;
-  box-sizing: border-box;
-  color: #eee;
-  font-family: 'Segoe UI', system-ui, sans-serif; 
-  font-size: 14px;
+/* Recedes while you listen; any pointer or focus brings it back. */
+#ttsflow-dock.is-idle {
+  opacity: 0.38;
 }
 
-/* =========================================
-   3. MEDIA CONTROLS (Removed Box, Polished Icons)
-   ========================================= */
-#ttsflow-controls {
-  display: flex;
-  align-items: center;
-  gap: 16px; /* Wider gap to let floating icons breathe */
+#ttsflow-dock.is-dragging {
+  transition: none;
+  cursor: grabbing;
 }
 
-.ttsflow-btn {
-  background: transparent;
-  border: none;
-  color: #ccc;
-  font-size: 22px; /* Prominent base size */
-  cursor: pointer;
-  width: 44px;
-  height: 44px;
-  transition: all 0.2s cubic-bezier(0.2, 0, 0, 1.5); 
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-shadow: 0 2px 4px rgba(0,0,0,0.5); /* Depth without a box */
-}
-
-.ttsflow-btn:hover {
-  color: #fff;
-  /* Background property removed so no circular shape appears */
-  transform: scale(1.15); 
-}
-
-.ttsflow-btn:active {
-  transform: scale(0.95); 
-}
-
-#ttsflow-playpause {
-  color: #4CAF50;
-  font-size: 28px; /* Extra prominent */
-  text-shadow: 0 2px 8px rgba(76, 175, 80, 0.4); /* Faint green glow */
-}
-
-#ttsflow-close {
-  position: absolute;
-  right: 20px;
-  top: 50%;
-  transform: translateY(-50%);
-  margin: 0 !important;
-}
-
-/* =========================================
-   4. SETTINGS (SPEED & VOICE)
-   ========================================= */
-#ttsflow-speed-control {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-#ttsflow-speed-val {
-  font-variant-numeric: tabular-nums; 
-  width: 28px;
-  display: inline-block;
-  text-align: right;
-}
-
-#ttsflow-speed-slider {
-  cursor: pointer;
-  accent-color: #4CAF50; 
-  width: 100px;
-}
-
-/* Navbar Logo Styling */
-#ttsflow-navbar-logo {
-  width: 28px !important;
-  height: 28px !important;
-  min-width: 28px;
-  min-height: 28px;
-  border-radius: 6px;
-  position: absolute;
-  left: 20px;
-  top: 50%;
-  transform: translateY(-50%);
-  object-fit: contain;
-}
-
-/* =========================================
-   5. SENTENCE HIGHLIGHTING & INTERACTION
-   ========================================= */
-.ttsflow-sentence {
-  cursor: pointer;
-  border-radius: 4px;
-  transition: background-color 0.2s ease, color 0.2s ease;
-  padding: 2px 4px; 
-}
-
-.ttsflow-sentence:hover {
-  background-color: rgba(255, 255, 255, 0.08); 
-}
-
-.ttsflow-highlight {
-  background-color: rgba(46, 125, 50, 0.5) !important; 
-  color: #fff !important;
-  box-shadow: none !important; 
-}
-
-.ttsflow-highlight:hover {
-  background-color: rgba(46, 125, 50, 0.7) !important; 
-}
-
-/* =========================================
-   6. LOADING SPINNER
-   ========================================= */
-.ttsflow-spinner {
-  border: 3px solid rgba(255, 255, 255, 0.05);
-  border-top: 3px solid #4CAF50;
-  border-radius: 50%;
+#ttsflow-dock #ttsflow-grip {
   width: 36px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px !important;
+  cursor: grab;
+  touch-action: none;
+}
+
+#ttsflow-dock #ttsflow-grip:hover {
+  background: var(--ttsflow-hover);
+}
+
+#ttsflow-dock.is-dragging #ttsflow-grip {
+  cursor: grabbing;
+}
+
+#ttsflow-dock #ttsflow-logo {
+  display: block;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px !important;
+  pointer-events: none;
+}
+
+#ttsflow-dock .ttsflow-dock-btn {
+  position: relative;
+  width: 38px;
   height: 36px;
-  animation: ttsflow-spin 1s linear infinite;
-  margin: 60px auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px !important;
+  color: var(--ttsflow-text);
+  transition: background-color 0.18s var(--ttsflow-ease), color 0.18s var(--ttsflow-ease), transform 0.12s var(--ttsflow-ease);
 }
 
-@keyframes ttsflow-spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+#ttsflow-dock .ttsflow-dock-btn:hover {
+  background: var(--ttsflow-hover);
 }
 
-/* =========================================
-   7. TOASTS (non-blocking replacement for alert)
-   ========================================= */
-.ttsflow-toast {
-  position: fixed;
-  bottom: 28px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 1000001;
-  max-width: 420px;
-  padding: 12px 18px;
-  background: rgba(25, 25, 25, 0.95);
-  color: #eee;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 10px;
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45);
-  font-family: 'Segoe UI', system-ui, sans-serif;
-  font-size: 14px;
-  line-height: 1.4;
+#ttsflow-dock .ttsflow-dock-btn:active {
+  transform: scale(0.94);
+}
+
+#ttsflow-dock .ttsflow-dock-btn[aria-expanded='true'] {
+  background: var(--ttsflow-accent-soft);
+  color: var(--ttsflow-accent);
+}
+
+/* Transport: prev, play and next share one inset well, so they read as a
+   single control rather than three loose icons. */
+#ttsflow-dock .ttsflow-transport {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 13px !important;
+  background: var(--ttsflow-hover);
+}
+
+#ttsflow-dock .ttsflow-transport .ttsflow-dock-btn {
+  width: 34px;
+  height: 30px;
+  border-radius: 9px !important;
+}
+
+#ttsflow-dock .ttsflow-transport .ttsflow-dock-btn:hover {
+  background: var(--ttsflow-hover);
+}
+
+#ttsflow-dock .ttsflow-transport #ttsflow-playpause {
+  width: 34px;
+  height: 36px;
+  border-radius: 10px !important;
+  border-radius: 12px !important;
+  background: var(--ttsflow-accent);
+  color: var(--ttsflow-accent-ink);
+}
+
+#ttsflow-dock .ttsflow-transport #ttsflow-playpause:hover {
+  background: var(--ttsflow-accent-hover);
+}
+
+#ttsflow-dock.is-loading #ttsflow-playpause {
+  opacity: 0.55;
+  cursor: progress;
+}
+
+#ttsflow-dock #ttsflow-progress-text {
+  display: block;
+  padding: 3px 0 2px;
+  font-size: 10px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
   text-align: center;
-  animation: ttsflow-toast-in 0.2s ease-out;
+  color: var(--ttsflow-muted);
+  cursor: default;
 }
 
-@keyframes ttsflow-toast-in {
-  from { opacity: 0; transform: translate(-50%, 12px); }
-  to   { opacity: 1; transform: translate(-50%, 0); }
+#ttsflow-dock #ttsflow-progress-text.is-state {
+  color: var(--ttsflow-text);
+  font-size: 9.5px;
 }
 
-
-/* =========================================
-   8. USER-ACTIVATION PROMPT
-   Chrome refuses to synthesise speech on a page the user has not clicked,
-   which is the state an auto-loaded next chapter starts in.
-   ========================================= */
-#ttsflow-gesture {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 1000002;
-  max-width: 420px;
-  padding: 26px 30px;
-  background: rgba(28, 28, 28, 0.98);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 10px;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
-  text-align: center;
-  font-family: 'Segoe UI', system-ui, sans-serif;
+#ttsflow-dock .ttsflow-dock-sep {
+  width: 20px;
+  height: 1px;
+  margin: 4px 0;
+  background: var(--ttsflow-border);
 }
 
-#ttsflow-gesture p {
-  margin: 0 0 18px;
-  font-size: 15px;
-  line-height: 1.5;
-  color: #ddd;
+#ttsflow-dock #ttsflow-speed-val {
+  font-size: 11.5px;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
 }
 
-#ttsflow-gesture-btn {
-  padding: 11px 22px;
-  background: #4CAF50;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  font-family: inherit;
-  font-size: 14px;
-  cursor: pointer;
-  transition: background 0.2s ease;
+#ttsflow-dock #ttsflow-voice-button.is-neural {
+  color: var(--ttsflow-accent);
 }
 
-#ttsflow-gesture-btn:hover {
-  background: #45a049;
+/* Reading progress: a hairline along the dock's inner edge. */
+#ttsflow-dock #ttsflow-progress-line {
+  position: absolute;
+  left: 0;
+  top: 14px;
+  bottom: 14px;
+  width: 2px;
+  pointer-events: none;
 }
 
-#ttsflow-gesture-btn:focus-visible {
-  outline: 2px solid #8bd98f;
+#ttsflow-dock #ttsflow-progress-line div {
+  width: 100%;
+  height: 100%;
+  border-radius: 2px !important;
+  background: var(--ttsflow-accent);
+  transform: scaleY(var(--ttsflow-progress, 0));
+  transform-origin: top;
+  transition: transform 0.3s var(--ttsflow-ease);
+}
+
+#ttsflow-dock .ttsflow-dock-btn:focus-visible,
+#ttsflow-dock #ttsflow-grip:focus-visible,
+#ttsflow-dock .ttsflow-chip:focus-visible,
+#ttsflow-dock .ttsflow-voice-body:focus-visible,
+#ttsflow-dock .ttsflow-voice-icon:focus-visible,
+#ttsflow-dock .ttsflow-link-btn:focus-visible,
+#ttsflow-gesture #ttsflow-gesture-btn:focus-visible {
+  outline: 2px solid var(--ttsflow-accent);
   outline-offset: 2px;
 }
 
-
 /* =========================================
-   9. VOICE PICKER
-   A panel rather than a <select>: <option> cannot hold the per-voice
-   download and delete controls.
+   3. POPOVERS (speed, voice)
+   They open beside the dock, never over the text column's centre.
    ========================================= */
-#ttsflow-voice {
+
+#ttsflow-dock #ttsflow-speed,
+#ttsflow-dock #ttsflow-voice {
   position: relative;
 }
 
-#ttsflow-voice-button {
-  background-color: rgba(20, 20, 20, 0.7);
-  color: #eee;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  padding: 7px 14px;
-  border-radius: 6px;
-  max-width: 230px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  cursor: pointer;
-  font-family: inherit;
-  font-size: 13px;
-  transition: border-color 0.2s ease, background-color 0.2s ease;
-}
-
-#ttsflow-voice-button:hover {
-  border-color: rgba(255, 255, 255, 0.4);
-  background-color: rgba(0, 0, 0, 0.8);
-}
-
-#ttsflow-voice-panel {
+#ttsflow-dock .ttsflow-popover {
   position: absolute;
-  top: calc(100% + 10px);
-  right: 0;
-  width: 380px;
-  max-height: 60vh;
+  top: 50%;
+  right: calc(100% + 16px);
+  transform: translateY(-50%);
+  translate: var(--ttsflow-dx, 0px) var(--ttsflow-dy, 0px);
+  z-index: 1;
+  color: var(--ttsflow-text);
+  background: var(--ttsflow-surface-solid);
+  border: 1px solid var(--ttsflow-border);
+  border-radius: 16px !important;
+  box-shadow: var(--ttsflow-edge), var(--ttsflow-shadow);
+  animation: ttsflow-pop-in 0.22s var(--ttsflow-ease);
+}
+
+@keyframes ttsflow-pop-in {
+  from { opacity: 0; scale: 0.97; }
+  to   { opacity: 1; scale: 1; }
+}
+
+/* --- speed --- */
+
+#ttsflow-dock #ttsflow-speed-panel {
+  width: 236px;
+  padding: 14px 14px 12px;
   display: flex;
   flex-direction: column;
-  background: rgba(24, 24, 24, 0.99);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 10px;
-  box-shadow: 0 14px 44px rgba(0, 0, 0, 0.6);
-  z-index: 1000003;
-  overflow: hidden;
-  font-family: 'Segoe UI', system-ui, sans-serif;
-  font-size: 13px;
-  color: #ddd;
+  gap: 12px;
 }
 
-#ttsflow-voice-search {
-  margin: 10px;
-  padding: 8px 10px;
-  background: rgba(0, 0, 0, 0.45);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 6px;
-  color: #eee;
-  font-family: inherit;
+#ttsflow-dock .ttsflow-speed-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
   font-size: 13px;
+  font-weight: 600;
+}
+
+#ttsflow-dock #ttsflow-speed-readout {
+  font-size: 13px;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  color: var(--ttsflow-accent);
+}
+
+#ttsflow-dock #ttsflow-speed-slider {
+  display: block;
+  width: 100%;
+  height: 20px;
+  margin: 0;
+  padding: 0;
+  accent-color: var(--ttsflow-accent);
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+
+#ttsflow-dock .ttsflow-speed-presets {
+  display: flex;
+  gap: 6px;
+}
+
+#ttsflow-dock .ttsflow-chip {
+  flex: 1;
+  height: 28px;
+  border-radius: 999px !important;
+  border: 1px solid var(--ttsflow-border);
+  font-size: 11.5px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  color: var(--ttsflow-muted);
+  transition: background-color 0.18s var(--ttsflow-ease), color 0.18s var(--ttsflow-ease), border-color 0.18s var(--ttsflow-ease);
+}
+
+#ttsflow-dock .ttsflow-chip:hover {
+  color: var(--ttsflow-text);
+  background: var(--ttsflow-hover);
+}
+
+#ttsflow-dock .ttsflow-chip.is-active {
+  color: var(--ttsflow-accent);
+  border-color: var(--ttsflow-accent);
+  background: var(--ttsflow-accent-soft);
+}
+
+/* --- voice --- */
+
+#ttsflow-dock #ttsflow-voice-panel {
+  width: 348px;
+  max-height: min(62vh, 520px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  font-size: 13px;
+}
+
+#ttsflow-dock #ttsflow-voice-search {
+  display: block;
+  width: auto;
+  height: 36px;
+  margin: 10px 10px 6px;
+  padding: 0 12px;
+  color: var(--ttsflow-text);
+  font-size: 13px;
+  background: var(--ttsflow-hover);
+  border: 1px solid var(--ttsflow-border);
+  border-radius: 10px !important;
+  box-shadow: none;
   outline: none;
 }
 
-#ttsflow-voice-search:focus {
-  border-color: #4CAF50;
+#ttsflow-dock #ttsflow-voice-search::placeholder {
+  color: var(--ttsflow-muted);
+  opacity: 1;
 }
 
-#ttsflow-voice-list {
-  overflow-y: auto;
+#ttsflow-dock #ttsflow-voice-search:focus {
+  border-color: var(--ttsflow-accent);
+  box-shadow: 0 0 0 3px var(--ttsflow-accent-soft);
+}
+
+#ttsflow-dock #ttsflow-voice-list {
   flex: 1;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   padding: 0 6px 6px;
 }
 
-.ttsflow-voice-group {
+#ttsflow-dock .ttsflow-voice-group {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
   gap: 10px;
-  padding: 10px 8px 5px;
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.7px;
-  color: #8f8f8f;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
-  margin-bottom: 4px;
+  padding: 12px 8px 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ttsflow-text);
 }
 
-.ttsflow-voice-group em {
+#ttsflow-dock .ttsflow-voice-group em {
   font-style: normal;
-  text-transform: none;
-  letter-spacing: 0;
-  font-size: 11px;
-  color: #6f6f6f;
+  font-weight: 400;
+  font-size: 11.5px;
+  color: var(--ttsflow-muted);
 }
 
-.ttsflow-voice-note {
+#ttsflow-dock .ttsflow-voice-note {
   padding: 12px 8px;
-  color: #9a9a9a;
+  color: var(--ttsflow-muted);
   line-height: 1.5;
 }
 
-.ttsflow-voice-row {
+#ttsflow-dock .ttsflow-voice-row {
   display: flex;
   align-items: center;
-  gap: 6px;
-  border-radius: 6px;
+  gap: 4px;
+  border-radius: 10px !important;
+  transition: background-color 0.15s var(--ttsflow-ease);
 }
 
-.ttsflow-voice-row:hover {
-  background: rgba(255, 255, 255, 0.06);
+#ttsflow-dock .ttsflow-voice-row:hover {
+  background: var(--ttsflow-hover);
 }
 
-.ttsflow-voice-row.selected {
-  background: rgba(46, 125, 50, 0.28);
+#ttsflow-dock .ttsflow-voice-row.selected {
+  background: var(--ttsflow-accent-soft);
 }
 
-.ttsflow-voice-body {
+#ttsflow-dock .ttsflow-voice-body {
   flex: 1;
   min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 2px;
-  padding: 9px 8px;
-  background: none;
-  border: none;
-  cursor: pointer;
+  padding: 8px 8px;
   text-align: left;
-  font-family: inherit;
-  color: inherit;
 }
 
-.ttsflow-voice-name {
+#ttsflow-dock .ttsflow-voice-name {
+  display: flex;
+  align-items: center;
   font-size: 13px;
-  color: #eee;
+  color: var(--ttsflow-text);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.ttsflow-voice-meta {
-  font-size: 11px;
-  color: #909090;
+#ttsflow-dock .ttsflow-voice-meta {
+  font-size: 11.5px;
+  color: var(--ttsflow-muted);
 }
 
-.ttsflow-voice-action {
+#ttsflow-dock .ttsflow-voice-check {
+  margin-right: 6px;
+  color: var(--ttsflow-accent);
+}
+
+#ttsflow-dock .ttsflow-voice-action {
   display: flex;
   align-items: center;
   gap: 7px;
-  padding-right: 8px;
+  padding-right: 6px;
   flex-shrink: 0;
 }
 
-.ttsflow-voice-icon {
+#ttsflow-dock .ttsflow-voice-icon {
   width: 30px;
   height: 30px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: transparent;
-  border: 1px solid transparent;
-  border-radius: 6px;
-  color: #bbb;
-  font-size: 15px;
-  cursor: pointer;
-  transition: all 0.15s ease;
+  border-radius: 10px !important;
+  color: var(--ttsflow-muted);
+  transition: background-color 0.15s var(--ttsflow-ease), color 0.15s var(--ttsflow-ease);
 }
 
-.ttsflow-voice-icon:hover {
-  background: rgba(255, 255, 255, 0.12);
-  border-color: rgba(255, 255, 255, 0.2);
-  color: #fff;
+#ttsflow-dock .ttsflow-voice-icon:hover {
+  background: var(--ttsflow-hover);
+  color: var(--ttsflow-text);
 }
 
-.ttsflow-voice-progress {
-  width: 64px;
-  height: 5px;
-  background: rgba(255, 255, 255, 0.14);
-  border-radius: 3px;
+#ttsflow-dock .ttsflow-voice-icon.danger:hover {
+  background: var(--ttsflow-danger-soft);
+  color: var(--ttsflow-danger);
+}
+
+/* Download progress: the fill alone, no grey track behind it. */
+#ttsflow-dock .ttsflow-voice-progress {
+  width: 56px;
+  height: 3px;
+  border-radius: 2px !important;
   overflow: hidden;
 }
 
-.ttsflow-voice-progress div {
+#ttsflow-dock .ttsflow-voice-progress div {
   height: 100%;
-  background: #4CAF50;
-  transition: width 0.2s ease;
+  border-radius: 2px !important;
+  background: var(--ttsflow-accent);
+  transition: width 0.2s var(--ttsflow-ease);
 }
 
-.ttsflow-voice-pct {
-  font-size: 11px;
-  color: #9a9a9a;
+#ttsflow-dock .ttsflow-voice-pct {
   min-width: 30px;
+  font-size: 11px;
   font-variant-numeric: tabular-nums;
+  color: var(--ttsflow-muted);
 }
 
-#ttsflow-voice-footer {
+#ttsflow-dock #ttsflow-voice-footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  padding: 9px 12px;
-  border-top: 1px solid rgba(255, 255, 255, 0.09);
-  background: rgba(0, 0, 0, 0.3);
+  padding: 10px 14px;
+  border-top: 1px solid var(--ttsflow-border);
   font-size: 12px;
-  color: #9a9a9a;
+  color: var(--ttsflow-muted);
 }
 
-.ttsflow-link-btn {
-  background: none;
-  border: none;
-  color: #e07b72;
-  cursor: pointer;
-  font-family: inherit;
-  font-size: 12px;
+#ttsflow-dock .ttsflow-link-btn {
   padding: 2px 4px;
+  border-radius: 6px !important;
+  font-size: 12px;
+  color: var(--ttsflow-danger);
 }
 
-.ttsflow-link-btn:hover {
-  color: #ff9c93;
+#ttsflow-dock .ttsflow-link-btn:hover {
   text-decoration: underline;
 }
 
-
 /* =========================================
-   10. ICONS, SELECTED STATE, REDUCED MOTION
+   4. NARROW OR SHORT SCREENS: a pill along the bottom
    ========================================= */
 
-/* Vendored SVG icons inherit colour and sit on the text baseline. */
-.ttsflow-btn svg,
-.ttsflow-voice-icon svg {
-  display: block;
-  pointer-events: none;
+/* Also on short windows (a landscape phone), where the column would not
+   fit. Keep in step with HORIZONTAL_QUERY in content/reader.js. */
+@media (max-width: 720px), (max-height: 420px) {
+  #ttsflow-dock {
+    top: auto;
+    right: auto;
+    left: 50%;
+    bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+    transform: translateX(-50%);
+    width: auto;
+    max-width: calc(100vw - 16px);
+    flex-direction: row;
+    padding: 5px 6px;
+    animation-name: ttsflow-dock-up;
+  }
+
+  @keyframes ttsflow-dock-up {
+    from { opacity: 0; translate: 0 10px; }
+    to   { opacity: 1; translate: 0 0; }
+  }
+
+  #ttsflow-dock #ttsflow-grip {
+    display: none;
+  }
+
+  #ttsflow-dock .ttsflow-transport {
+    flex-direction: row;
+  }
+
+  #ttsflow-dock #ttsflow-progress-text {
+    padding: 0 4px;
+  }
+
+  #ttsflow-dock .ttsflow-dock-sep {
+    width: 1px;
+    height: 20px;
+    margin: 0 3px;
+  }
+
+  #ttsflow-dock #ttsflow-progress-line {
+    top: auto;
+    left: 16px;
+    right: 16px;
+    bottom: 0;
+    width: auto;
+    height: 2px;
+  }
+
+  #ttsflow-dock #ttsflow-progress-line div {
+    transform: scaleX(var(--ttsflow-progress, 0));
+    transform-origin: left;
+  }
+
+  #ttsflow-dock .ttsflow-popover {
+    top: auto;
+    right: auto;
+    left: 50%;
+    bottom: calc(100% + 16px);
+    transform: translateX(-50%);
+  }
+
+  #ttsflow-dock #ttsflow-voice-panel {
+    width: min(348px, calc(100vw - 20px));
+    max-height: 60vh;
+  }
+
+  .ttsflow-toast {
+    bottom: calc(80px + env(safe-area-inset-bottom, 0px)) !important;
+  }
 }
 
-.ttsflow-voice-icon.danger { color: #e58b83; }
+/* =========================================
+   5. TOASTS
+   ========================================= */
 
-.ttsflow-voice-icon.danger:hover {
-  background: rgba(229, 139, 131, 0.14);
-  border-color: rgba(229, 139, 131, 0.4);
-  color: #ff9c93;
+.ttsflow-toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2147483001;
+  max-width: min(420px, calc(100vw - 32px));
+  padding: 11px 16px;
+  color: var(--ttsflow-text);
+  font-size: 13.5px;
+  text-align: center;
+  background: var(--ttsflow-surface-solid);
+  border: 1px solid var(--ttsflow-border);
+  border-radius: 16px !important;
+  box-shadow: var(--ttsflow-edge), var(--ttsflow-shadow);
+  animation: ttsflow-toast-in 0.25s var(--ttsflow-ease);
 }
 
-.ttsflow-voice-check {
-  vertical-align: -2px;
-  margin-right: 6px;
-  color: #6fbf73;
+@keyframes ttsflow-toast-in {
+  from { opacity: 0; translate: 0 8px; }
+  to   { opacity: 1; translate: 0 0; }
 }
 
-.ttsflow-btn:focus-visible,
-.ttsflow-voice-icon:focus-visible,
-#ttsflow-voice-button:focus-visible,
-.ttsflow-voice-body:focus-visible {
-  outline: 2px solid #4CAF50;
-  outline-offset: 2px;
+/* =========================================
+   6. USER-ACTIVATION PROMPT
+   The browser refuses to start speech on a page nobody has clicked, which
+   is the state an auto-loaded next chapter starts in.
+   ========================================= */
+
+#ttsflow-gesture {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2147483002;
+  width: min(360px, calc(100vw - 32px));
+  padding: 22px 22px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  color: var(--ttsflow-text);
+  background: var(--ttsflow-surface-solid);
+  border: 1px solid var(--ttsflow-border);
+  border-radius: 16px !important;
+  box-shadow: var(--ttsflow-edge), var(--ttsflow-shadow);
+  animation: ttsflow-pop-in 0.22s var(--ttsflow-ease);
+}
+
+#ttsflow-gesture p {
+  font-size: 14.5px;
+  line-height: 1.5;
+  color: var(--ttsflow-text);
+}
+
+#ttsflow-gesture #ttsflow-gesture-btn {
+  align-self: flex-start;
+  height: 38px;
+  padding: 0 16px;
+  border-radius: 10px !important;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ttsflow-accent-ink);
+  background: var(--ttsflow-accent);
+  transition: background-color 0.18s var(--ttsflow-ease), transform 0.12s var(--ttsflow-ease);
+}
+
+#ttsflow-gesture #ttsflow-gesture-btn:hover {
+  background: var(--ttsflow-accent-hover);
+}
+
+#ttsflow-gesture #ttsflow-gesture-btn:active {
+  transform: scale(0.97);
+}
+
+/* =========================================
+   7. ACCESSIBILITY PREFERENCES
+   ========================================= */
+
+@media (prefers-reduced-transparency: reduce) {
+  #ttsflow-dock {
+    background: var(--ttsflow-surface-solid);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
 }
 
 /* Motion here is feedback only, so it all collapses cleanly. */
 @media (prefers-reduced-motion: reduce) {
-  .ttsflow-btn,
-  .ttsflow-sentence,
-  .ttsflow-voice-icon,
-  #ttsflow-voice-button,
-  #ttsflow-voice-select,
-  .ttsflow-voice-progress div {
+  #ttsflow-dock,
+  #ttsflow-dock *,
+  #ttsflow-gesture,
+  #ttsflow-gesture *,
+  .ttsflow-toast {
+    animation: none !important;
     transition: none !important;
   }
 
-  .ttsflow-btn:hover,
-  .ttsflow-btn:active {
-    transform: none !important;
-  }
-
-  .ttsflow-toast {
-    animation: none !important;
-    transform: translateX(-50%) !important;
-  }
-
-  .ttsflow-spinner {
-    animation-duration: 2.4s;
+  #ttsflow-dock .ttsflow-dock-btn:active,
+  #ttsflow-gesture #ttsflow-gesture-btn:active {
+    transform: none;
   }
 }

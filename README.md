@@ -158,14 +158,18 @@ Your web novel stays where it belongs:
 
 ## Simple controls
 
-The reader overlay gives you the controls you actually need:
+TTSFlow reads the page you already have open. There's no separate reader view: the sentence being spoken is highlighted right in the chapter, in the site's own layout and theme.
+
+The controls sit in a slim dock on the right edge, out of the text column, and fade back while you listen. Drag the TTSFlow logo to move the dock up or down. On narrow screens it becomes a small bar along the bottom.
 
 **Play / Pause**
 **Previous sentence**
 **Next sentence**
-**Speed**
+**Speed** (presets, a slider, or scroll the wheel over the speed readout)
 **Voice**
 **Close**
+
+Scroll away to reread something and the page stops following the voice for a few seconds.
 
 Keyboard shortcuts:
 

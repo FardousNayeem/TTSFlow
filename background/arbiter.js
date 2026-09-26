@@ -116,5 +116,13 @@ globalThis.TTSFlowArbiter = (() => {
     }
   }
 
-  return { handle, clearState, releaseTab, readState };
+  const ACTIONS = new Set([
+    'TTSFLOW_CLAIM',
+    'TTSFLOW_RELEASE_SELF',
+    'TTSFLOW_ARM_RESUME',
+    'TTSFLOW_CONSUME_RESUME',
+    'TTSFLOW_IS_OWNER'
+  ]);
+
+  return { handle, clearState, releaseTab, readState, ACTIONS };
 })();

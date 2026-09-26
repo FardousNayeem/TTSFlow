@@ -239,6 +239,8 @@
       this.rate = 1;
       this.pitch = 1;
       this.token = 0;
+      // The background's token for the sentence now playing.
+      this.playing = null;
       this.paused = false;
     }
 
@@ -249,6 +251,7 @@
 
     handleBackgroundMessage(request) {
       if (request.action === 'TTSFLOW_PIPER_ENDED') {
+        if (request.token != null && request.token !== this.playing) return true;
         if (!this.paused) this.onended();
         return true;
       }
@@ -264,6 +267,8 @@
       this.rate = rate;
       this.pitch = pitch;
       this.paused = false;
+      // Until the background confirms this sentence, no end event is ours.
+      this.playing = null;
       const token = ++this.token;
 
       const reply = await bg('TTSFLOW_PIPER_SPEAK', {
@@ -275,7 +280,11 @@
       });
 
       if (token !== this.token) return;
-      if (!reply.ok) this.onerror({ error: reply.error || 'synthesis failed' });
+      if (!reply.ok) {
+        this.onerror({ error: reply.error || 'synthesis failed' });
+        return;
+      }
+      if (reply.token != null) this.playing = reply.token;
     }
 
     pause() {
@@ -295,6 +304,7 @@
 
     stop() {
       this.token++;
+      this.playing = null;
       this.paused = false;
       bg('TTSFLOW_PIPER_STOP');
     }

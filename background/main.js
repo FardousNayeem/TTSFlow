@@ -23,13 +23,26 @@ browser.tabs.onRemoved.addListener((tabId) => Arbiter.releaseTab(tabId));
 
 let readingPorts = 0;
 
+// A chapter handoff drops the port for the second or two between one page
+// unloading and the next connecting. Shutting down at once threw away the
+// loaded voice model, so every new chapter paid for loading it again.
+const SHUTDOWN_GRACE_MS = 15000;
+let shutdownTimer = null;
+
 browser.runtime.onConnect.addListener((port) => {
   if (port.name !== 'ttsflow-session') return;
   readingPorts++;
+  clearTimeout(shutdownTimer);
 
   port.onDisconnect.addListener(() => {
     readingPorts = Math.max(0, readingPorts - 1);
-    if (readingPorts === 0) Piper.shutdown();
+    if (readingPorts > 0) return;
+    // Nothing should keep talking while the grace period runs.
+    Piper.stop();
+    clearTimeout(shutdownTimer);
+    shutdownTimer = setTimeout(() => {
+      if (readingPorts === 0) Piper.shutdown();
+    }, SHUTDOWN_GRACE_MS);
   });
 });
 
@@ -50,9 +63,9 @@ async function route(request, sender) {
   const tabId = sender.tab ? sender.tab.id : null;
   const { action } = request;
 
-  // Ownership actions.
-  const arbitrated = await Arbiter.handle(action, tabId, request);
-  if (arbitrated !== null) return arbitrated;
+  // Ownership actions. Only those touch the arbiter's stored state, so the
+  // per-sentence Piper traffic does not pay for a storage read each time.
+  if (Arbiter.ACTIONS.has(action)) return Arbiter.handle(action, tabId, request);
 
   switch (action) {
     case 'TTSFLOW_PIPER_LIST':
@@ -73,6 +86,9 @@ async function route(request, sender) {
         nextText: request.nextText,
         voiceId: request.voiceId,
         rate: request.rate,
+        // Dropped here before, so the pitch setting never reached neural
+        // voices even though the settings page says it works with them.
+        pitch: request.pitch,
         tabId
       });
 

@@ -18,9 +18,12 @@
   const mb = (bytes) => (bytes >= 1048576 ? `${Math.round(bytes / 1048576)} MB` : `${Math.round(bytes / 1024)} KB`);
 
   class VoicePanel {
-    constructor({ onSelect, onNotice }) {
+    constructor({ onSelect, onNotice, onOpen, compact = false }) {
       this.onSelect = onSelect;
       this.onNotice = onNotice || (() => {});
+      this.onOpen = onOpen || (() => {});
+      // Compact renders the trigger as an icon, for the reader's side dock.
+      this.compact = compact;
 
       this.systemVoices = [];
       this.piperVoices = [];
@@ -47,23 +50,38 @@
       this.button = document.createElement('button');
       this.button.type = 'button';
       this.button.id = 'ttsflow-voice-button';
-      this.button.textContent = 'Loading voices…';
-      this.button.addEventListener('click', (e) => {
-        e.stopPropagation();
-        this.toggle();
-      });
+      this.button.setAttribute('aria-haspopup', 'dialog');
+      this.button.setAttribute('aria-expanded', 'false');
+      this.button.addEventListener('click', () => this.toggle());
+      this.renderButton();
 
       this.panel = document.createElement('div');
       this.panel.id = 'ttsflow-voice-panel';
+      this.panel.className = 'ttsflow-popover';
+      this.panel.setAttribute('role', 'dialog');
+      this.panel.setAttribute('aria-label', 'Voice');
       this.panel.hidden = true;
-      this.panel.addEventListener('click', (e) => e.stopPropagation());
 
       this.root.append(this.button, this.panel);
       container.appendChild(this.root);
 
-      // Clicking anywhere else closes the panel.
-      this.outsideClick = () => this.close();
+      // Clicking anywhere else closes the panel. This runs in the capture
+      // phase, ahead of the trigger's own handler, so it has to ignore
+      // clicks inside the picker: closing here and then letting the trigger
+      // toggle made a second click on the button reopen the panel at once.
+      this.outsideClick = (e) => {
+        if (this.open && !this.root.contains(e.target)) this.close();
+      };
       document.addEventListener('click', this.outsideClick, true);
+
+      this.onKey = (e) => {
+        if (e.key !== 'Escape' || !this.open) return;
+        e.preventDefault();
+        e.stopPropagation();
+        this.close();
+        this.button.focus();
+      };
+      this.root.addEventListener('keydown', this.onKey);
 
       return this.root;
     }
@@ -80,12 +98,15 @@
     show() {
       this.open = true;
       this.panel.hidden = false;
+      this.button.setAttribute('aria-expanded', 'true');
       this.render();
+      this.onOpen(this.panel);
     }
 
     close() {
       this.open = false;
       if (this.panel) this.panel.hidden = true;
+      if (this.button) this.button.setAttribute('aria-expanded', 'false');
     }
 
     /* ----------------------------------------------------------------
@@ -123,6 +144,9 @@
     }
 
     handleProgress(voiceId, loaded, total) {
+      // Only downloads started here. One started on the settings page would
+      // otherwise leave a progress bar on this row that never goes away.
+      if (!this.downloading.has(voiceId)) return;
       this.downloading.set(voiceId, { loaded, total });
       if (this.open) this.renderRow(voiceId);
     }
@@ -161,21 +185,25 @@
         if (voice) voice.installed = false;
         // Fall back to a system voice if the active one was just deleted.
         if (this.selection.engine === 'piper' && this.selection.voiceId === voiceId) {
-          if (this.systemVoices.length) {
-            this.pickSystem(this.systemVoices[0]);
-          } else {
-            // No system voice to fall back to, which is the normal state on
-            // a Linux box with no speech-dispatcher voices. Clear the
-            // selection rather than leaving it aimed at a deleted model.
-            this.setSelection({ engine: 'native', voiceId: '', voiceName: '' });
-            this.onSelect(this.selection);
-          }
+          this.fallBackToSystem();
         }
         this.onNotice(`Deleted ${label}.`);
       } else {
         this.onNotice(`Could not delete: ${(reply && reply.error) || 'unknown error'}`);
       }
       if (this.open) this.render();
+    }
+
+    // No system voice to fall back to is the normal state on a Linux box
+    // with no speech-dispatcher voices. Clear the selection then, rather
+    // than leaving it aimed at a deleted model.
+    fallBackToSystem() {
+      if (this.systemVoices.length) {
+        this.pickSystem(this.systemVoices[0]);
+        return;
+      }
+      this.setSelection({ engine: 'native', voiceId: '', voiceName: '' });
+      this.onSelect(this.selection);
     }
 
     pickSystem(voice) {
@@ -204,8 +232,15 @@
       if (!this.button) return;
       const { engine, voiceName } = this.selection;
       const label = voiceName || 'Select voice';
+      const full = engine === 'piper' ? `${label} (neural)` : label;
+      this.button.title = `Voice: ${full}`;
+      this.button.setAttribute('aria-label', `Voice: ${full}`);
+      if (this.compact) {
+        if (!this.button.firstChild) this.button.appendChild(NS.icon('voice', { size: 20 }));
+        this.button.classList.toggle('is-neural', engine === 'piper');
+        return;
+      }
       this.button.textContent = engine === 'piper' ? `${label} · neural` : label;
-      this.button.title = label;
     }
 
     installedSummary() {
@@ -255,7 +290,7 @@
           if (!window.confirm(`Delete all ${count} downloaded voices (${mb(bytes)})?`)) return;
           await bg('TTSFLOW_PIPER_FLUSH');
           this.piperVoices.forEach((v) => (v.installed = false));
-          if (this.selection.engine === 'piper') this.pickSystem(this.systemVoices[0]);
+          if (this.selection.engine === 'piper') this.fallBackToSystem();
           this.onNotice('Deleted all downloaded voices.');
           this.render();
         });

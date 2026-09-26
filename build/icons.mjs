@@ -30,7 +30,10 @@ const WANTED = {
   settings: ['outline', 'settings'],
   check: ['outline', 'check'],
   broom: ['outline', 'wash-machine'],
-  speaker: ['outline', 'volume']
+  speaker: ['outline', 'volume'],
+  voice: ['outline', 'microphone-2'],
+  speed: ['outline', 'brand-speedtest'],
+  grip: ['outline', 'grip-horizontal']
 };
 
 if (!fs.existsSync(iconsDir)) {

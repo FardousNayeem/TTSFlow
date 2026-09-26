@@ -55,6 +55,18 @@ async function save(patch) {
   await browser.storage.local.set(patch);
 }
 
+// Sliders fire on every pixel of a drag, and an open reader re-speaks its
+// sentence on each speed or pitch change it hears. Write once it settles.
+const saveTimers = {};
+function saveSoon(key, value) {
+  settings[key] = value;
+  clearTimeout(saveTimers[key]);
+  saveTimers[key] = setTimeout(() => save({ [key]: value }), 250);
+}
+
+// Matches the reader: 1.25× stays 1.25×, 1.00× reads as 1.0×.
+const formatSpeed = (value) => `${value.toFixed(2).replace(/0$/, '')}×`;
+
 /* ---------------------------------------------------------------------
    Playback preferences
    --------------------------------------------------------------------- */
@@ -62,11 +74,11 @@ async function save(patch) {
 function bindPlayback() {
   const speed = $('speed');
   speed.value = String(settings.speed);
-  $('speed-value').textContent = `${settings.speed.toFixed(1)}x`;
+  $('speed-value').textContent = formatSpeed(settings.speed);
   speed.addEventListener('input', () => {
     const value = parseFloat(speed.value);
-    $('speed-value').textContent = `${value.toFixed(1)}x`;
-    save({ speed: value });
+    $('speed-value').textContent = formatSpeed(value);
+    saveSoon('speed', value);
   });
 
   const pitch = $('pitch');
@@ -75,7 +87,7 @@ function bindPlayback() {
   pitch.addEventListener('input', () => {
     const value = parseFloat(pitch.value);
     $('pitch-value').textContent = value.toFixed(2);
-    save({ pitch: value });
+    saveSoon('pitch', value);
   });
 
   for (const key of ['autoAdvance', 'resumePosition', 'autoScroll']) {
@@ -437,6 +449,17 @@ browser.runtime.onMessage.addListener((request) => {
   const voice = piperVoices.find((v) => v.id === request.voiceId);
   if (row && voice) row.lastElementChild.replaceWith(voiceActions(voice));
   return false;
+});
+
+// Speed changed from the reader's dock while this page is open.
+browser.storage.onChanged.addListener((changes, area) => {
+  if (area !== 'local' || !changes.speed) return;
+  const value = parseFloat(changes.speed.newValue);
+  const slider = $('speed');
+  if (!Number.isFinite(value) || document.activeElement === slider) return;
+  settings.speed = value;
+  slider.value = String(value);
+  $('speed-value').textContent = formatSpeed(value);
 });
 
 async function init() {
